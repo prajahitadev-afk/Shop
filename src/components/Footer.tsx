@@ -131,15 +131,15 @@ export default function Footer({ onNavigate }: Props) {
             <div className="flex flex-wrap gap-6">
               <a href="mailto:hello@prajahita.in" className="flex items-center gap-2 text-sm text-brown-300 hover:text-cream-200 transition-colors">
                 <Mail size={14} className="text-gold-400" />
-                hello@prajahita.in
+                prajahitadev@gmail.com
               </a>
               <a href="tel:+919876543210" className="flex items-center gap-2 text-sm text-brown-300 hover:text-cream-200 transition-colors">
                 <Phone size={14} className="text-gold-400" />
-                +91 98765 43210
+                +91 91826 26287
               </a>
               <span className="flex items-center gap-2 text-sm text-brown-300">
                 <MapPin size={14} className="text-gold-400" />
-                Bangalore, Karnataka, India
+                Opposite degree college, Ichapuram, Andhra Pradesh,532312
               </span>
             </div>
 
