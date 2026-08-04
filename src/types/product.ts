@@ -1,0 +1,32 @@
+export interface Product {
+  id: string;
+  product_code?: string;
+  name: string;
+  category?: string | null;
+  category_id?: string;
+  unit_price?: number | null;
+  stock_quantity?: number;
+  status?: string;
+  tagline: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  original_price?: number;
+  weight: string;
+  fragrance: string;
+  rating: number;
+  reviewCount: number;
+  review_count?: number;
+  badge?: 'bestseller' | 'new' | 'limited' | 'organic';
+  usage: string;
+  precautions: string;
+  collection: string;
+  created_at?: string;
+  updated_at?: string;
+  image: string;
+  images: string[];
+  skinType: string[];
+  ingredients: string[];
+  benefits: string[];
+  inStock?: boolean;
+}
