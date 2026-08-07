@@ -322,18 +322,18 @@ export default function Shop({ onNavigate, initialSearch = '' }: Props) {
   return (
     <div className="min-h-screen bg-cream-50">
       {/* Header */}
-      <div className="bg-sage-500 py-12">
+      <div className="bg-sage-500 py-10 sm:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-serif text-4xl md:text-5xl font-bold text-cream-50 mb-2">Our Collection</h1>
-          <p className="text-sage-200">Discover {products.length} premium herbal soap formulas</p>
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-cream-50 mb-2">Our Collection</h1>
+          <p className="text-sage-200 text-sm sm:text-base">Discover {products.length} premium herbal soap formulas</p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Top bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6">
           {/* Search */}
-          <div className="relative flex-1 min-w-64 max-w-sm">
+          <div className="relative w-full sm:flex-1 sm:min-w-64 sm:max-w-sm">
             <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brown-400" />
             <input
               type="text"
@@ -344,12 +344,12 @@ export default function Shop({ onNavigate, initialSearch = '' }: Props) {
             />
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
             {/* Sort */}
             <select
               value={sort}
               onChange={e => setSort(e.target.value as SortKey)}
-              className="px-4 py-2.5 bg-white border border-cream-300 rounded-2xl text-sm text-brown-700 focus:outline-none focus:ring-2 focus:ring-sage-400/30 cursor-pointer"
+              className="w-full sm:w-auto px-4 py-2.5 bg-white border border-cream-300 rounded-2xl text-sm text-brown-700 focus:outline-none focus:ring-2 focus:ring-sage-400/30 cursor-pointer"
             >
               <option value="featured">Featured</option>
               <option value="bestselling">Best Selling</option>
@@ -378,7 +378,7 @@ export default function Shop({ onNavigate, initialSearch = '' }: Props) {
             {/* Mobile filter toggle */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-white border border-cream-300 rounded-2xl text-sm text-brown-700"
+              className="lg:hidden flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-cream-300 rounded-2xl text-sm text-brown-700 w-full sm:w-auto"
             >
               <SlidersHorizontal size={15} />
               Filters

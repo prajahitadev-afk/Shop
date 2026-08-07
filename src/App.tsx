@@ -185,7 +185,7 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-cream-100">
+    <div className="min-h-screen flex flex-col bg-cream-100 overflow-x-hidden">
       <Navbar currentPage={nav.page} onNavigate={navigate} user={authUser} onLogout={handleLogout} />
 
       <main className="flex-1">
@@ -206,9 +206,9 @@ function AppContent() {
       </button>
 
       {/* Chat Widget */}
-      <div className="fixed bottom-5 right-5 z-50">
+      <div className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-50">
         {chatOpen ? (
-          <div className="w-80 bg-white rounded-3xl shadow-2xl border border-cream-200 overflow-hidden flex flex-col" style={{ height: '420px' }}>
+          <div className="w-[min(22rem,calc(100vw-2rem))] bg-white rounded-3xl shadow-2xl border border-cream-200 overflow-hidden flex flex-col" style={{ height: '420px' }}>
             <div className="bg-sage-500 px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-sage-400 rounded-2xl flex items-center justify-center">

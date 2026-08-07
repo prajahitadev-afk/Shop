@@ -4,6 +4,7 @@ import ProductCard from '../components/ProductCard'
 import { useProducts } from '../hooks/useProducts'
 import { useIngredients } from '../hooks/useIngredients'
 import { useTestimonials } from '../hooks/useTestimonials'
+import { useSkinTypes } from '../hooks/useSkinTypes'
 import prajahitaLogo from '../imports/PRAJAHITA_LOGO.jpeg'
 import backimgone from '../imports/backimgone.jpeg'
 import oats from '../imports/product_pics/oats.jpeg'
@@ -150,14 +151,25 @@ export default function Home({ onNavigate }: Props) {
   const [subscribed, setSubscribed] = useState(false)
   const { products } = useProducts()
   const { ingredients } = useIngredients()
+  const { skinTypes } = useSkinTypes()
 
-  const collections = useMemo(() => [
-    { id: 'acne-care', name: 'Acne Care', count: products.filter(p => p.category === 'Acne Care').length, image: products.find(p => p.category === 'Acne Care')?.image ?? prajahitaLogo, icon: '🌿' },
-    { id: 'dry-skin', name: 'Dry Skin', count: products.filter(p => p.category === 'Dry Skin').length, image: products.find(p => p.category === 'Dry Skin')?.image ?? prajahitaLogo, icon: '💧' },
-    { id: 'oily-skin', name: 'Oily Skin', count: products.filter(p => p.category === 'Oily Skin').length, image: products.find(p => p.category === 'Oily Skin')?.image ?? prajahitaLogo, icon: '✨' },
-    { id: 'sensitive-skin', name: 'Sensitive Skin', count: products.filter(p => p.category === 'Sensitive Skin').length, image: products.find(p => p.category === 'Sensitive Skin')?.image ?? prajahitaLogo, icon: '🌸' },
-  ], [products])
+  const collectionIcons: Record<string, string> = {
+    'Acne Care': '🌿',
+    'Dry Skin': '💧',
+    'Oily Skin': '✨',
+    'Sensitive Skin': '🌸',
+  }
 
+  const collections = useMemo(() => {
+    return skinTypes.map(type => ({
+      id: type.id,
+      name: type.name,
+      count: type.productCount ?? products.filter(p => Array.isArray(p.skinType) && p.skinType.includes(type.name)).length,
+      image: type.image || (products.find(p => Array.isArray(p.skinType) && p.skinType.includes(type.name))?.image ?? prajahitaLogo),
+      icon: collectionIcons[type.name] ?? '🌿',
+    }))
+  }, [skinTypes, products])
+  
   const tabFilters = useMemo(() => ({
     bestsellers: products.filter(p => p.badge === 'bestseller'),
     new: products.filter(p => p.badge === 'new'),
@@ -166,9 +178,7 @@ export default function Home({ onNavigate }: Props) {
   }), [products])
 
   const displayProducts = useMemo(() => tabFilters[activeTab].slice(0, 4), [tabFilters, activeTab])
-
   const spotlightIngredients = useMemo(() => ingredients.slice(0, 10), [ingredients])
-
   const featuredProduct = useMemo(() => {
     return products.find(p => p.badge === 'bestseller' || p.rating >= 4.8) ?? products[0]
   }, [products])
@@ -190,32 +200,32 @@ export default function Home({ onNavigate }: Props) {
           <div className="absolute top-20 right-20 w-60 h-60 bg-gold-400/10 rounded-full blur-2xl" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
           <div className="max-w-3xl">
-            <div className="flex items-center gap-2 mb-6">
+            <div className="flex items-center gap-2 mb-4 sm:mb-6">
               <div className="h-px w-8 bg-gold-600" />
-              <span className="text-[25px] font-semibold tracking-[0.25em] uppercase text-gold-1000 mb-3 block">
-                Premium Handcrafted Soaps ---
+              <span className="text-base sm:text-[20px] font-semibold tracking-[0.2em] uppercase text-gold-1000 block">
+                Premium Handcrafted Soaps
               </span>
             </div>
-            <h1 className="font-serif font-bold text-5xl md:text-6xl lg:text-7xl leading-[1.08] mb-6" style={{ color: 'rgb(55, 33, 0)' }}>
-              <span className="block text-gold-1000 ">Homemade Soaps</span>
-              <span className="block text-4xl md:text-5xl font-normal italic">for Healthy Skin</span>
+            <h1 className="font-serif font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.05] mb-4 sm:mb-6" style={{ color: 'rgb(55, 33, 0)' }}>
+              <span className="block text-gold-1000">Homemade Soaps</span>
+              <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-normal italic">for Healthy Skin</span>
             </h1>
-            <p className="text-lg md:text-[20px] leading-relaxed mb-10 max-w-xl bold-3px" style={{ color: 'rgb(22, 66, 0)' }}>
+            <p className="text-base sm:text-lg md:text-[20px] leading-relaxed mb-8 sm:mb-10 max-w-xl" style={{ color: 'rgb(22, 66, 0)' }}>
               <b>100% natural, handmade, and cruelty-free. Each bar is crafted with Ayurvedic herbs, cold-process tradition, and love for both your skin and our planet.</b>
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
               <button
                 onClick={() => onNavigate('shop')}
-                className="btn-gold px-8 py-4 rounded-2xl text-base flex items-center gap-2 shadow-xl"
+                className="w-full sm:w-auto btn-gold px-8 py-4 rounded-2xl text-base flex items-center justify-center gap-2 shadow-xl"
               >
                 Shop Now
                 <ArrowRight size={18} />
               </button>
               <button
                 onClick={() => onNavigate('about')}
-                className="btn-outline px-8 py-4 rounded-2xl text-base flex items-center gap-2"
+                className="w-full sm:w-auto btn-outline px-8 py-4 rounded-2xl text-base flex items-center justify-center gap-2"
               >
                 <Play size={16} />
                 Our Story
@@ -277,7 +287,7 @@ export default function Home({ onNavigate }: Props) {
       {/* Service promises */}
       <section className="bg-forest-600 py-5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
             {[
               { icon: Truck, text: 'Free Delivery above ₹699' },
               { icon: Shield, text: '100% Authentic Products' },
@@ -293,20 +303,20 @@ export default function Home({ onNavigate }: Props) {
       </section>
 
       {/* Featured Products */}
-      <section className="py-20 bg-cream-50">
+      <section className="py-16 sm:py-20 bg-cream-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <span className="text-[40px] font-semibold tracking-[5px] uppercase text-gold-500 mb-3 block">Our Products</span>
-            <h4 className="text-[10px] font-serif md:text-5xl font-bold text-bark-800 mb-4">
+          <div className="text-center mb-10 sm:mb-12">
+            <span className="text-3xl sm:text-4xl font-semibold tracking-[0.2em] uppercase text-gold-500 mb-3 block">Our Products</span>
+            <h4 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-bark-800 mb-4">
               Crafted for Your Skin
             </h4>
-            <p className="text-bark-500 text-lg max-w-2xl mx-auto">
-              - Cold-processed using premium herbs. No sulphates. No parabens. Just nature goodness
+            <p className="text-bark-500 text-base sm:text-lg max-w-2xl mx-auto">
+              Cold-processed using premium herbs. No sulphates. No parabens. Just nature goodness.
             </p>
           </div>
 
           {/* Tabs */}
-          <div className="flex flex-wrap justify-center gap-2 mb-10">
+          <div className="flex flex-wrap justify-center gap-2 mb-8 sm:mb-10">
             {[
               { key: 'bestsellers', label: 'Best Sellers' },
               { key: 'new', label: 'New Arrivals' },
@@ -316,7 +326,7 @@ export default function Home({ onNavigate }: Props) {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                className={`px-4 sm:px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
                   activeTab === tab.key
                     ? 'bg-forest-500 text-cream-50 shadow-md'
                     : 'bg-white text-bark-600 border border-cream-300 hover:border-forest-300 hover:text-forest-600'
@@ -371,7 +381,7 @@ export default function Home({ onNavigate }: Props) {
                 The Standard of
                 <span className="text-gradient-forest block">Natural Skincare</span>
               </h2>
-              <p className="text-bark-500 text-lg leading-relaxed mb-8">
+              <p className="text-bark-500 text-base sm:text-lg leading-relaxed mb-8">
                 We believe healthy skin comes from nature, not a laboratory. Every decision we make — from ingredient sourcing to packaging — reflects our commitment to purity, sustainability, and efficacy.
               </p>
               <div className="my-12 overflow-x-auto rounded-xl border border-amber-100 shadow-sm">
@@ -432,11 +442,10 @@ export default function Home({ onNavigate }: Props) {
             </div>
             <button
                 onClick={() => onNavigate('about')}
-                className="mt-8 flex items-center gap-2 text-forest-600 font-semibold hover:text-forest-500 transition-colors"
-              >
+                className="mt-8 flex items-center gap-2 text-forest-600 font-semibold hover:text-forest-500 transition-colors">
                 Learn more about our values
                 <ArrowRight size={16} />
-              </button>
+            </button>
           </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mt-12 items-center">
               {/* Step 1: First image - Base position */}
@@ -468,7 +477,7 @@ export default function Home({ onNavigate }: Props) {
             </div>
             </div>
           {/* Additional benefits */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="mt-12 sm:mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
             {whyUsItems.map(item => (
               <div key={item.title} className="text-center p-4 rounded-2xl bg-cream-50 border border-cream-200 hover:border-forest-200 hover:bg-forest-50 transition-colors group">
                 <div className="w-10 h-10 rounded-xl bg-white border border-cream-200 flex items-center justify-center mx-auto mb-3 group-hover:bg-forest-50 group-hover:border-forest-200 transition-colors">
@@ -481,18 +490,18 @@ export default function Home({ onNavigate }: Props) {
         </div>
       </section>
       {/* Ingredients Spotlight */}
-      <section className="py-20 bg-cream-100">
+      <section className="py-16 sm:py-20 bg-cream-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <span className="text-[50px] font-serif tracking-[6px] uppercase text-gold-500 mb-3 block">The Botanicals</span>
-            <h2 className="font-serif text-[20px] md:text-5xl font-bold text-bark-800 mb-4">
+          <div className="text-center mb-10 sm:mb-12">
+            <span className="text-3xl sm:text-4xl font-serif tracking-[0.2em] uppercase text-gold-500 mb-3 block">The Botanicals</span>
+            <h2 className="font-serif text-2xl sm:text-3xl md:text-5xl font-bold text-bark-800 mb-4">
               Power of Nature's Lab
             </h2>
-            <p className="text-bark-500 text-lg max-w-2xl mx-auto">
+            <p className="text-bark-500 text-base sm:text-lg max-w-2xl mx-auto">
               Each ingredient is carefully selected for its proven skincare properties, sourced ethically, and used in optimal concentrations.
             </p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
             {spotlightIngredients.map(ing => (
               <button
                 key={ing.id}
@@ -551,7 +560,7 @@ export default function Home({ onNavigate }: Props) {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-5">
             {collections.map(col => (
               <button
                 key={col.id}

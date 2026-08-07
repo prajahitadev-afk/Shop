@@ -4,6 +4,7 @@ import prajahitaLogo from '../imports/PRAJAHITA_LOGO.jpeg';
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
+
 const fallbackProducts: Product[] = [
   {
     id: 'fallback-neem',

@@ -275,7 +275,7 @@ export default function ProductDetail({ productId, onNavigate }: Props) {
     <div className="min-h-screen bg-cream-50">
       {/* Breadcrumb */}
       <div className="bg-white border-b border-cream-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3">
           <nav className="flex items-center gap-2 text-xs text-brown-400">
             <button onClick={() => onNavigate('home')} className="hover:text-sage-600 transition-colors">Home</button>
             <span>/</span>
@@ -286,8 +286,8 @@ export default function ProductDetail({ productId, onNavigate }: Props) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid lg:grid-cols-2 gap-12 mb-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-12 sm:mb-16">
           {/* Images */}
           <div className="space-y-4">
             <div
@@ -329,7 +329,7 @@ export default function ProductDetail({ productId, onNavigate }: Props) {
                 </>
               )}
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               {productImages.map((img: string, i: number) => (
                 <button
                   key={i}
@@ -403,8 +403,8 @@ export default function ProductDetail({ productId, onNavigate }: Props) {
             </div>
 
             {/* Quantity & CTA */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex items-center gap-0 border border-cream-300 rounded-2xl overflow-hidden bg-white">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+              <div className="flex items-center gap-0 border border-cream-300 rounded-2xl overflow-hidden bg-white self-start sm:self-auto">
                 <button
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
                   className="w-11 h-11 flex items-center justify-center text-brown-600 hover:bg-cream-100 transition-colors"
@@ -453,7 +453,7 @@ export default function ProductDetail({ productId, onNavigate }: Props) {
             </button>
 
             {/* Ingredients preview */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
                 <Leaf size={14} className="text-sage-500" />
                 <span className="text-xs font-semibold text-brown-600">Key Ingredients:</span>
@@ -485,7 +485,7 @@ export default function ProductDetail({ productId, onNavigate }: Props) {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                className={`px-6 py-3.5 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-3 sm:px-6 py-2.5 sm:py-3.5 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab.key
                     ? 'border-sage-500 text-sage-700'
                     : 'border-transparent text-brown-500 hover:text-brown-700'
@@ -546,7 +546,7 @@ export default function ProductDetail({ productId, onNavigate }: Props) {
             {activeTab === 'reviews' && (
               <div className="max-w-3xl">
                 {/* Rating summary */}
-                <div className="flex gap-8 mb-8 p-6 bg-white rounded-2xl border border-cream-200">
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 mb-8 p-4 sm:p-6 bg-white rounded-2xl border border-cream-200">
                   <div className="text-center">
                     <div className="font-serif text-5xl font-bold text-brown-800 mb-1">{averageRating}</div>
                     <div className="flex justify-center gap-0.5 mb-1">
@@ -621,7 +621,7 @@ export default function ProductDetail({ productId, onNavigate }: Props) {
         {related.length > 0 && (
           <div>
             <h2 className="font-serif text-2xl font-bold text-brown-800 mb-6">You May Also Like</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
               {related.map(p => (
                 <ProductCard key={p.id} product={p} onView={id => onNavigate('product', id)} />
               ))}
