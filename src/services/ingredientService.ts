@@ -3,6 +3,7 @@ import { generateUUID } from '../lib/uuid'
 import type { Ingredient } from '../types/ingredient'
 import type { Product } from '../types/product'
 import { mapProductRow } from './productService'
+import { ingredients as localIngredients } from '../data/ingredients'
 
 const fallbackIngredients: Ingredient[] = []
 
@@ -19,18 +20,22 @@ function parseStringArray(value: unknown) {
 }
 
 function mapIngredientRow(row: Record<string, unknown>): Ingredient {
+  const localIngredient = localIngredients.find(ingredient =>
+    ingredient.id === String(row.id ?? '') || ingredient.name.toLowerCase() === String(row.name ?? '').toLowerCase(),
+  )
+  const localImage = localIngredient?.image
   const imageUrl = typeof row.image_url === 'string'
     ? row.image_url
     : typeof row.image === 'string'
       ? row.image
-      : ''
+      : localImage ?? ''
 
   return {
     id: String(row.id ?? generateUUID()),
     name: typeof row.name === 'string' ? row.name : '',
     scientificName: typeof row.scientific_name === 'string' ? row.scientific_name : '',
     origin: typeof row.origin === 'string' ? row.origin : '',
-    image: imageUrl,
+    image: imageUrl || localImage || '',
     color: typeof row.color === 'string' ? row.color : '#84a98c',
     benefits: parseStringArray(row.benefits),
     skinTypes: parseStringArray(row.skin_types ?? row.skin_types),

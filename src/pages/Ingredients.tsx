@@ -1,17 +1,18 @@
 import { useState } from 'react'
 import { Search, ArrowRight, Leaf } from 'lucide-react'
 import { useIngredients } from '../hooks/useIngredients'
+import { useSkinTypes } from '../hooks/useSkinTypes'
 
 type Page = 'home' | 'shop' | 'product' | 'about' | 'ingredients' | 'blog' | 'contact' | 'cart' | 'checkout'
 type Props = { onNavigate: (page: Page, id?: string, shopSearch?: string) => void }
-
-const skinTypeFilters = ['All', 'Oily', 'Dry', 'Sensitive', 'Normal', 'Acne-Prone', 'Mature', 'All Skin Types']
 
 export default function Ingredients({ onNavigate }: Props) {
   const [search, setSearch] = useState('')
   const [skinFilter, setSkinFilter] = useState('All')
   const [selected, setSelected] = useState<string | null>(null)
   const { ingredients, loading } = useIngredients()
+  const { skinTypes } = useSkinTypes()
+  const skinTypeFilters = ['All', ...skinTypes.map(skinType => skinType.name)]
 
   const normalizedIngredients = ingredients
 

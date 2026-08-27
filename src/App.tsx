@@ -22,6 +22,7 @@ type NavState = {
   page: Page
   productId?: string
   shopSearch?: string
+  shopSkinType?: string
 }
 
 const defaultProductId = 'neem-turmeric-glow'
@@ -120,8 +121,8 @@ function AppContent() {
     }
   }, [])
 
-  const navigate = (page: Page, id?: string, shopSearch?: string) => {
-    setNav({ page, productId: id, shopSearch })
+  const navigate = (page: Page, id?: string, shopSearch?: string, shopSkinType?: string) => {
+    setNav({ page, productId: id, shopSearch, shopSkinType })
   }
 
   const handleAuth = (user: AuthUser) => {
@@ -169,7 +170,7 @@ function AppContent() {
   const renderPage = () => {
     switch (nav.page) {
       case 'home': return <Home onNavigate={navigate} />
-      case 'shop': return <Shop onNavigate={navigate} initialSearch={nav.shopSearch ?? ''} />
+      case 'shop': return <Shop onNavigate={navigate} initialSearch={nav.shopSearch ?? ''} initialSkinType={nav.shopSkinType ?? ''} />
       case 'product': return <ProductDetail productId={nav.productId ?? 'neem-turmeric-glow'} onNavigate={navigate} />
       //case 'about': return <About onNavigate={navigate} />
       case 'ingredients': return <Ingredients onNavigate={navigate} />

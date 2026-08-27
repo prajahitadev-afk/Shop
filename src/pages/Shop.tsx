@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { SlidersHorizontal, Search, Grid3X3, LayoutList, X, ChevronDown, ChevronUp, Star } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
 import { useProducts } from "../hooks/useProducts";
+import { useSkinTypes } from '../hooks/useSkinTypes'
 import { getIngredients, getProductsByIngredient } from '../services/ingredientService'
 
 type Page = 'home' | 'shop' | 'product' | 'about' | 'ingredients' | 'blog' | 'contact' | 'cart' | 'checkout'
@@ -9,6 +10,7 @@ type Page = 'home' | 'shop' | 'product' | 'about' | 'ingredients' | 'blog' | 'co
 type Props = {
   onNavigate: (page: Page, id?: string, shopSearch?: string) => void
   initialSearch?: string
+  initialSkinType?: string
 }
 
 type SortKey = 'featured' | 'bestselling' | 'newest' | 'price-asc' | 'price-desc' | 'rating'
@@ -29,7 +31,7 @@ function FilterSection({ title, children, defaultOpen = true }: { title: string;
   )
 }
 
-export default function Shop({ onNavigate, initialSearch = '' }: Props) {
+export default function Shop({ onNavigate, initialSearch = '', initialSkinType = '' }: Props) {
   const [search, setSearch] = useState(initialSearch)
   const [category, setCategory] = useState('All')
   const [skinType, setSkinType] = useState<string[]>([])
@@ -43,6 +45,7 @@ export default function Shop({ onNavigate, initialSearch = '' }: Props) {
   const [ingredientProductIds, setIngredientProductIds] = useState<string[]>([])
   const PER_PAGE = 12
   const { products, loading } = useProducts()
+  const { skinTypes } = useSkinTypes()
 
   const availableCategories = useMemo(() => {
     const values = products
@@ -54,13 +57,13 @@ export default function Shop({ onNavigate, initialSearch = '' }: Props) {
   }, [products])
 
   const availableSkinTypes = useMemo(() => {
-    const values = products
+    const productValues = products
       .flatMap((product) => product.skinType ?? [])
       .map((value) => value.trim())
       .filter(Boolean)
 
-    return Array.from(new Set(values))
-  }, [products])
+    return Array.from(new Set([...skinTypes.map(skinType => skinType.name), ...productValues]))
+  }, [products, skinTypes])
 
   const maxPrice = useMemo(() => {
     const prices = products
@@ -76,6 +79,10 @@ export default function Shop({ onNavigate, initialSearch = '' }: Props) {
   useEffect(() => {
     setSearch(initialSearch)
   }, [initialSearch])
+
+  useEffect(() => {
+    setSkinType(initialSkinType ? [initialSkinType] : [])
+  }, [initialSkinType])
 
   useEffect(() => {
     if (products.length > 0) {

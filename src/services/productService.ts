@@ -191,6 +191,69 @@ export function mapProductRow(row: any): Product {
     collection: row.collection ?? category,
   };
 }
+
+async function mapProductsWithRelations(rows: any[]) {
+  if (!supabase || rows.length === 0) {
+    return rows.map(mapProductRow);
+  }
+
+  const [
+    { data: links, error: linksError },
+    { data: skinTypes, error: skinTypesError },
+    { data: ingredientLinks, error: ingredientLinksError },
+    { data: ingredients, error: ingredientsError },
+  ] = await Promise.all([
+    supabase.from('product_skin_types').select('product_id, skin_type_id'),
+    supabase.from('skin_types').select('id, name'),
+    supabase.from('product_ingredients').select('product_id, ingredient_id'),
+    supabase.from('ingredients').select('id, name'),
+  ]);
+
+  if (linksError || skinTypesError || ingredientLinksError || ingredientsError) {
+    console.warn('Unable to load product relationships:', linksError ?? skinTypesError ?? ingredientLinksError ?? ingredientsError);
+  }
+
+  const namesById = new Map(
+    (skinTypes ?? []).map((skinType: any) => [
+      String(skinType.id),
+      String(skinType.name ?? skinType.skin_type ?? skinType.type ?? skinType.label ?? ''),
+    ]),
+  );
+  const typesByProductId = new Map<string, string[]>();
+  const ingredientNamesByProductId = new Map<string, string[]>();
+  const ingredientNamesById = new Map(
+    (ingredients ?? []).map((ingredient: any) => [String(ingredient.id), String(ingredient.name ?? '')]),
+  );
+
+  for (const link of linksError ? [] : (links ?? [])) {
+    const name = namesById.get(String(link.skin_type_id));
+    if (!name) continue;
+    const productTypes = typesByProductId.get(String(link.product_id)) ?? [];
+    if (!productTypes.includes(name)) productTypes.push(name);
+    typesByProductId.set(String(link.product_id), productTypes);
+  }
+
+  for (const link of ingredientLinksError ? [] : (ingredientLinks ?? [])) {
+    const name = ingredientNamesById.get(String(link.ingredient_id));
+    if (!name) continue;
+    const productIngredients = ingredientNamesByProductId.get(String(link.product_id)) ?? [];
+    if (!productIngredients.includes(name)) productIngredients.push(name);
+    ingredientNamesByProductId.set(String(link.product_id), productIngredients);
+  }
+
+  return rows.map((row: any) => {
+    const relationSkinTypes = skinTypesError ? [] : (typesByProductId.get(String(row.id)) ?? []);
+    const directSkinTypes = parseStringArray(row.skin_type ?? row.skinTypes ?? row.skin_types);
+    const relationIngredients = ingredientNamesByProductId.get(String(row.id)) ?? [];
+    const directIngredients = parseStringArray(row.ingredients);
+    return mapProductRow({
+      ...row,
+      skin_type: Array.from(new Set([...relationSkinTypes, ...directSkinTypes])),
+      ingredients: Array.from(new Set([...relationIngredients, ...directIngredients])),
+    });
+  });
+}
+
 export async function getProducts() {
   if (!supabase) {
     return fallbackProducts;
@@ -207,7 +270,7 @@ export async function getProducts() {
         if (row?.is_active === false) return false;
         return true;
       });
-      return rows.length > 0 ? rows.map(mapProductRow) : fallbackProducts;
+      return rows.length > 0 ? await mapProductsWithRelations(rows) : fallbackProducts;
     }
     const fallbackQuery = await supabase
       .from('products')
@@ -221,7 +284,7 @@ export async function getProducts() {
       if (row?.is_active === false) return false;
       return true;
     });
-    return rows.length > 0 ? rows.map(mapProductRow) : fallbackProducts;
+    return rows.length > 0 ? await mapProductsWithRelations(rows) : fallbackProducts;
   } catch (error) {
     console.warn('Falling back to local product data because Supabase is unavailable:', error);
     return fallbackProducts;
