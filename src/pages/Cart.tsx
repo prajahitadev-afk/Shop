@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { createOrder } from '../services/orderService'
 import { createNotification } from '../services/notificationService'
+import { generateUUID } from '../lib/uuid'
 
 type Page = 'home' | 'shop' | 'product' | 'about' | 'ingredients' | 'blog' | 'contact' | 'cart' | 'checkout'
 type Props = { onNavigate: (page: Page, id?: string) => void }
@@ -718,7 +719,7 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                     }
 
                     const orderId = `ORD-${Math.floor(Math.random() * 90000) + 10000}`
-                    const orderUuid = crypto.randomUUID()
+                    const orderUuid = generateUUID()
                     const customerName = shipping.name || authUser?.name || customerProfile.first_name || 'Customer'
                     console.log('CHECKOUT_CUSTOMER_IDS', { authUserId: authUser?.id ?? null, customerProfileId: customerProfile?.id ?? null })
                     const customerEmail = (shipping.email || authUser?.email || customerProfile.email || '').toLowerCase()
@@ -762,18 +763,6 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                       })),
                     })
 
-                    const notificationResult = databaseOrderResult.success
-                      ? await createNotification({
-                        title: 'New Customer Order',
-                        message: `Order ${orderId} has been placed by ${customerName}`,
-                        type: 'order',
-                        notificationType: 'new_order',
-                        relatedEntityType: 'order',
-                        relatedEntityId: orderUuid,
-                        isRead: false,
-                      })
-                      : { success: true as const }
-
                     if (databaseOrderResult.success) {
                       const normalizedOrderItems = (databaseOrderResult.items ?? []).map((item: { product_id?: string; productId?: string; quantity?: number; unit_price?: number; unitPrice?: number; total_price?: number; totalPrice?: number }, index: number) => ({
                         productId: item.product_id ?? item.productId ?? `item-${index}`,
@@ -812,9 +801,19 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                       console.log('CONFIRMATION_ITEM_COUNT', completedOrderDetails.items.length)
                       setCompletedOrder(completedOrderDetails)
                       console.log('ORDER_CONFIRMATION_DATA', completedOrderDetails)
-                      await clearCart()
-                      setMessage(notificationResult.success ? 'Order saved successfully.' : 'Order saved, but notification could not be created.')
+                      setMessage('Order saved successfully.')
                       setStep('done')
+
+                      void createNotification({
+                        title: 'New Customer Order',
+                        message: `Order ${orderId} has been placed by ${customerName}`,
+                        type: 'order',
+                        notificationType: 'new_order',
+                        relatedEntityType: 'order',
+                        relatedEntityId: orderUuid,
+                        isRead: false,
+                      })
+                      void clearCart()
                     } else {
                       setMessage(databaseOrderResult.error ?? customerResult.error ?? 'Could not save the order right now.')
                     }
