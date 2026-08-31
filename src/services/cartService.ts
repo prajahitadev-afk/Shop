@@ -8,20 +8,30 @@ export type CartDbItem = {
   quantity: number
 }
 
-function readStoredCartItems() {
+const LOCAL_CART_KEY_PREFIX = 'prajahita-cart:'
+
+function readStoredCartItems(scope = 'guest') {
   if (typeof window === 'undefined') return [] as CartDbItem[]
 
   try {
-    const raw = window.localStorage.getItem('prajahita-db-cart')
+    const raw = window.localStorage.getItem(`${LOCAL_CART_KEY_PREFIX}${scope}`)
     return raw ? (JSON.parse(raw) as CartDbItem[]) : []
   } catch {
     return [] as CartDbItem[]
   }
 }
 
-function writeStoredCartItems(items: CartDbItem[]) {
+function writeStoredCartItems(items: CartDbItem[], scope = 'guest') {
   if (typeof window === 'undefined') return
-  window.localStorage.setItem('prajahita-db-cart', JSON.stringify(items))
+  window.localStorage.setItem(`${LOCAL_CART_KEY_PREFIX}${scope}`, JSON.stringify(items))
+}
+
+export function loadLocalCart(scope: string, products: Product[]) {
+  return readStoredCartItems(scope).filter(item => products.some(product => product.id === item.product.id))
+}
+
+export function saveLocalCart(scope: string, items: CartDbItem[]) {
+  writeStoredCartItems(items, scope)
 }
 
 async function getOrCreateCart(customerId: string) {
@@ -102,12 +112,12 @@ export async function syncCartToDatabase(customerId: string, product: Product, q
   }
 }
 
-export async function loadCartFromDatabase(customerId: string, products: Product[]) {
-  if (!supabase || !customerId) return readStoredCartItems()
+export async function loadCartFromDatabase(customerId: string, products: Product[], localScope = `customer:${customerId}`) {
+  if (!supabase || !customerId) return loadLocalCart(localScope, products)
 
   try {
     const cart = await getOrCreateCart(customerId)
-    if (!cart?.id) return readStoredCartItems()
+    if (!cart?.id) return loadLocalCart(localScope, products)
 
     const { data, error } = await supabase
       .from('cart_items')
@@ -115,7 +125,7 @@ export async function loadCartFromDatabase(customerId: string, products: Product
       .eq('cart_id', cart.id)
       .order('id', { ascending: true })
 
-    if (error) return readStoredCartItems()
+    if (error) return loadLocalCart(localScope, products)
 
     const items = (data ?? [])
       .map((row: Record<string, unknown>) => {
@@ -132,10 +142,10 @@ export async function loadCartFromDatabase(customerId: string, products: Product
 
     console.log('DB_CART_LOADED', { customerId, count: items.length, items: items.map(item => ({ id: item.product.id, quantity: item.quantity })) })
     console.log('DB_CART_ITEM_COUNT', { customerId, count: items.length })
-    writeStoredCartItems(items)
+    writeStoredCartItems(items, localScope)
     return items
   } catch {
-    return readStoredCartItems()
+    return loadLocalCart(localScope, products)
   }
 }
 

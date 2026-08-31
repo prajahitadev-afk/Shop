@@ -32,6 +32,10 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [showWishlistPanel, setShowWishlistPanel] = useState(false)
   const [showAccountPanel, setShowAccountPanel] = useState(false)
+  const accountWelcomeTitle = user ? `Welcome back, ${user.name}` : 'Welcome to Prajahita'
+  const accountWelcomeDescription = user
+    ? 'Your account is ready for orders and favorites.'
+    : 'Sign in to save addresses, favorites, and orders.'
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 24)
@@ -277,17 +281,34 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
                 </button>
               </div>
 
-              <div className="rounded-2xl border border-cream-200 bg-cream-50 p-4 mb-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-2xl bg-sage-50 border border-sage-100 flex items-center justify-center">
-                    <User size={18} className="text-sage-600" />
+              {user ? (
+                <button
+                  onClick={() => { setShowAccountPanel(false); onNavigate('orders') }}
+                  className="w-full rounded-2xl border border-cream-200 bg-cream-50 p-4 mb-4 text-left hover:border-sage-300 hover:bg-sage-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-2xl bg-sage-50 border border-sage-100 flex items-center justify-center">
+                      <User size={18} className="text-sage-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-brown-800">{user.name}</p>
+                      <p className="text-xs text-brown-500">View your orders, addresses, and account details</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-brown-800">{user ? `Welcome back, ${user.name}` : 'Welcome to Prajahita'}</p>
-                    <p className="text-xs text-brown-500">{user ? 'Your account is ready for orders and favorites.' : 'Sign in to save addresses, favorites, and orders.'}</p>
+                </button>
+              ) : (
+                <div className="rounded-2xl border border-cream-200 bg-cream-50 p-4 mb-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-2xl bg-sage-50 border border-sage-100 flex items-center justify-center">
+                      <User size={18} className="text-sage-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-brown-800">{accountWelcomeTitle}</p>
+                      <p className="text-xs text-brown-500">{accountWelcomeDescription}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {user ? (
                 <button
@@ -336,7 +357,7 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
               ))}
               <div className="pt-2 border-t border-cream-200">
                 <button
-                  onClick={() => { setMobileOpen(false); onNavigate(user ? 'home' : 'login') }}
+                  onClick={() => { setMobileOpen(false); onNavigate(user ? 'orders' : 'login') }}
                   className="w-full btn-primary px-4 py-3 rounded-2xl text-sm"
                 >
                   {user ? 'Account' : 'Sign In / Create Account'}

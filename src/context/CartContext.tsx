@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { useAuth } from './AuthContext'
-import { clearCartFromDatabase, loadCartFromDatabase, syncCartToDatabase, updateCartItemQuantity } from '../services/cartService'
+import { clearCartFromDatabase, loadCartFromDatabase, loadLocalCart, saveLocalCart, syncCartToDatabase, updateCartItemQuantity } from '../services/cartService'
 import { useProducts } from '../hooks/useProducts'
 import type { Product } from '../types/product'
 
@@ -41,6 +41,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [wishlist, setWishlist] = useState<string[]>([])
   const [couponCode, setCouponCodeState] = useState('')
   const [discount, setDiscount] = useState(0)
+  const cartScope = customer?.id ? `customer:${customer.id}` : authUser?.id ? `user:${authUser.id}` : 'guest'
 
   const applyCartItems = (nextItems: CartItem[]) => {
     console.log('CART_STATE_UPDATED', {
@@ -52,18 +53,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const refreshCart = async () => {
-      if (!customer?.id) {
-        applyCartItems([])
+      if (products.length === 0) {
         return
       }
 
+      const localItems = loadLocalCart(cartScope, products)
+      applyCartItems(localItems)
+
+      if (!customer?.id) return
+
       console.log('CART_CONTEXT_CUSTOMER', { authUserId: authUser?.id ?? null, customerId: customer.id })
-      const dbItems = await loadCartFromDatabase(customer.id, products)
-      applyCartItems(dbItems)
+      const dbItems = await loadCartFromDatabase(customer.id, products, cartScope)
+      if (dbItems.length > 0 || localItems.length === 0) {
+        applyCartItems(dbItems)
+      }
     }
 
     void refreshCart()
-  }, [authUser?.id, customer?.id, products])
+  }, [authUser?.id, cartScope, customer?.id, products])
 
   const addToCart = async (product: Product, quantity = 1) => {
     const optimisticItems = (prev: CartItem[]) => {
@@ -76,6 +83,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     setItems(prev => {
       const nextItems = optimisticItems(prev)
+      saveLocalCart(cartScope, nextItems)
       console.log('CART_STATE_UPDATED', {
         count: nextItems.length,
         items: nextItems.map(item => ({ id: item.product.id, quantity: item.quantity })),
@@ -88,13 +96,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     await syncCartToDatabase(customer.id, product, quantity)
-    const dbItems = await loadCartFromDatabase(customer.id, products)
-    const resolvedItems = dbItems.length > 0 ? dbItems : (await loadCartFromDatabase(customer.id, products))
-    applyCartItems(resolvedItems)
+    const dbItems = await loadCartFromDatabase(customer.id, products, cartScope)
+    if (dbItems.length > 0) applyCartItems(dbItems)
   }
 
   const removeFromCart = async (productId: string) => {
-    setItems(prev => prev.filter(item => item.product.id !== productId))
+    setItems(prev => {
+      const nextItems = prev.filter(item => item.product.id !== productId)
+      saveLocalCart(cartScope, nextItems)
+      return nextItems
+    })
 
     if (!customer?.id) {
       return
@@ -108,29 +119,45 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQuantity = async (productId: string, quantity: number) => {
     if (!customer?.id) {
       if (quantity <= 0) {
-        setItems(prev => prev.filter(item => item.product.id !== productId))
+        setItems(prev => {
+          const nextItems = prev.filter(item => item.product.id !== productId)
+          saveLocalCart(cartScope, nextItems)
+          return nextItems
+        })
         return
       }
-      setItems(prev => prev.map(item => item.product.id === productId ? { ...item, quantity } : item))
+      setItems(prev => {
+        const nextItems = prev.map(item => item.product.id === productId ? { ...item, quantity } : item)
+        saveLocalCart(cartScope, nextItems)
+        return nextItems
+      })
       return
     }
 
-    setItems(prev => prev.map(item => item.product.id === productId ? { ...item, quantity } : item))
+    setItems(prev => {
+      const nextItems = quantity <= 0
+        ? prev.filter(item => item.product.id !== productId)
+        : prev.map(item => item.product.id === productId ? { ...item, quantity } : item)
+      saveLocalCart(cartScope, nextItems)
+      return nextItems
+    })
     const result = await updateCartItemQuantity(customer.id, productId, quantity)
     if (!result.success) return
-    const dbItems = await loadCartFromDatabase(customer.id, products)
+    const dbItems = await loadCartFromDatabase(customer.id, products, cartScope)
     applyCartItems(dbItems)
   }
 
   const clearCart = async () => {
     if (!customer?.id) {
       applyCartItems([])
+      saveLocalCart(cartScope, [])
       return
     }
 
     applyCartItems([])
+    saveLocalCart(cartScope, [])
     await clearCartFromDatabase(customer.id)
-    const dbItems = await loadCartFromDatabase(customer.id, products)
+    const dbItems = await loadCartFromDatabase(customer.id, products, cartScope)
     applyCartItems(dbItems)
   }
 

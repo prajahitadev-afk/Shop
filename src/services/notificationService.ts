@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import type { NotificationRecord } from '../types/notification.ts'
+import { generateUUID } from '../lib/uuid'
 
 export type CreateNotificationPayload = {
   title: string
@@ -33,7 +34,7 @@ export async function createNotification(payload: CreateNotificationPayload) {
     }
 
     const notification: NotificationRecord = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       title: payload.title,
       message: payload.message,
       type: payload.type,

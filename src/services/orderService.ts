@@ -22,6 +22,20 @@ export type CreateOrderPayload = {
 }
 
 const fallbackOrders: OrderRecord[] = []
+const REQUEST_TIMEOUT_MS = 15000
+
+async function withTimeout<T>(request: PromiseLike<T>, message: string) {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(message)), REQUEST_TIMEOUT_MS)
+  })
+
+  try {
+    return await Promise.race([Promise.resolve(request), timeout])
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
+}
 
 export async function getOrders() {
   if (!supabase) return fallbackOrders
@@ -41,23 +55,26 @@ export async function createOrder(payload: CreateOrderPayload) {
   }
 
   try {
-    const { data: createdOrder, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        id: payload.id,
-        order_number: payload.orderNumber,
-        customer_id: payload.customerId,
-        order_date: payload.orderDate,
-        expected_delivery: payload.expectedDelivery,
-        status: payload.status ?? 'Confirmed',
-        total_amount: payload.totalAmount,
-        payment_status: payload.paymentStatus ?? 'Pending',
-        payment_method: payload.paymentMethod ?? 'cod',
-        shipping_address: payload.shippingAddress ?? '',
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .maybeSingle()
+    const { data: createdOrder, error: orderError } = await withTimeout(
+      supabase
+        .from('orders')
+        .insert({
+          id: payload.id,
+          order_number: payload.orderNumber,
+          customer_id: payload.customerId,
+          order_date: payload.orderDate,
+          expected_delivery: payload.expectedDelivery,
+          status: payload.status ?? 'Confirmed',
+          total_amount: payload.totalAmount,
+          payment_status: payload.paymentStatus ?? 'Pending',
+          payment_method: payload.paymentMethod ?? 'cod',
+          shipping_address: payload.shippingAddress ?? '',
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .maybeSingle(),
+      'Order save timed out. Please try again.',
+    )
 
     console.log('ORDER_INSERT_RESULT', { orderError: orderError?.message ?? null, createdOrder })
     console.log('ORDER_ID', createdOrder?.id ?? null)
@@ -78,10 +95,13 @@ export async function createOrder(payload: CreateOrderPayload) {
     console.log('ORDER_ITEMS_PAYLOAD', { orderId: createdOrder.id, items: orderItemsPayload })
 
     if (orderItemsPayload.length > 0) {
-      const { data: insertedItems, error: itemError } = await supabase
-        .from('order_items')
-        .insert(orderItemsPayload)
-        .select()
+      const { data: insertedItems, error: itemError } = await withTimeout(
+        supabase
+          .from('order_items')
+          .insert(orderItemsPayload)
+          .select(),
+        'Order items save timed out. Please try again.',
+      )
 
       console.log('ORDER_ITEMS_INSERT_RESULT', { insertedItems, itemError: itemError?.message ?? null })
 
