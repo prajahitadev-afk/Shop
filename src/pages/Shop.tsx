@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { SlidersHorizontal, Search, Grid3X3, LayoutList, X, ChevronDown, ChevronUp, Star } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
 import { useProducts } from "../hooks/useProducts";
+<<<<<<< HEAD
+=======
+import { useSkinTypes } from '../hooks/useSkinTypes'
+>>>>>>> 860a929 (Initial Shop project)
 import { getIngredients, getProductsByIngredient } from '../services/ingredientService'
 
 type Page = 'home' | 'shop' | 'product' | 'about' | 'ingredients' | 'blog' | 'contact' | 'cart' | 'checkout'
@@ -43,6 +47,10 @@ export default function Shop({ onNavigate, initialSearch = '' }: Props) {
   const [ingredientProductIds, setIngredientProductIds] = useState<string[]>([])
   const PER_PAGE = 12
   const { products, loading } = useProducts()
+<<<<<<< HEAD
+=======
+  const { skinTypes: databaseSkinTypes } = useSkinTypes()
+>>>>>>> 860a929 (Initial Shop project)
 
   const availableCategories = useMemo(() => {
     const values = products
@@ -54,6 +62,13 @@ export default function Shop({ onNavigate, initialSearch = '' }: Props) {
   }, [products])
 
   const availableSkinTypes = useMemo(() => {
+<<<<<<< HEAD
+=======
+    if (databaseSkinTypes.length > 0) {
+      return databaseSkinTypes.map(skinType => skinType.name)
+    }
+
+>>>>>>> 860a929 (Initial Shop project)
     const values = products
       .flatMap((product) => product.skinType ?? [])
       .map((value) => value.trim())
@@ -125,6 +140,10 @@ export default function Shop({ onNavigate, initialSearch = '' }: Props) {
       const q = search.toLowerCase()
       result = result.filter(p => {
         const ingredients = Array.isArray(p.ingredients) ? p.ingredients : []
+<<<<<<< HEAD
+=======
+          const skinTypes = Array.isArray(p.skinType) ? p.skinType : []
+>>>>>>> 860a929 (Initial Shop project)
         const categoryText = (p.category ?? '').toLowerCase()
         const collectionText = (p.collection ?? '').toLowerCase()
         const descriptionText = (p.description ?? '').toLowerCase()
@@ -133,6 +152,10 @@ export default function Shop({ onNavigate, initialSearch = '' }: Props) {
         return name.includes(q)
           || descriptionText.includes(q)
           || ingredients.some((i: string) => i.toLowerCase().includes(q))
+<<<<<<< HEAD
+=======
+          || skinTypes.some((type: string) => type.toLowerCase().includes(q))
+>>>>>>> 860a929 (Initial Shop project)
           || categoryText.includes(q)
           || collectionText.includes(q)
       })
