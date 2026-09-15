@@ -2,7 +2,11 @@ import { supabase } from '../lib/supabase'
 import { generateUUID } from '../lib/uuid'
 import type { Ingredient } from '../types/ingredient'
 import type { Product } from '../types/product'
+<<<<<<< HEAD
 import { mapProductRow } from './productService'
+=======
+import { enrichProductSkinTypes } from './productService'
+>>>>>>> 860a929 (Initial Shop project)
 
 const fallbackIngredients: Ingredient[] = []
 
@@ -131,5 +135,9 @@ export async function getProductsByIngredient(ingredientId: string): Promise<Pro
     return []
   }
 
+<<<<<<< HEAD
   return (productsData ?? []).map(row => mapProductRow(row as Record<string, unknown>))
+=======
+  return enrichProductSkinTypes(productsData ?? [])
+>>>>>>> 860a929 (Initial Shop project)
 }

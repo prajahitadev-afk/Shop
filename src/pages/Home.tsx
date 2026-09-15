@@ -4,6 +4,7 @@ import ProductCard from '../components/ProductCard'
 import { useProducts } from '../hooks/useProducts'
 import { useIngredients } from '../hooks/useIngredients'
 import { useTestimonials } from '../hooks/useTestimonials'
+import { useSkinTypes } from '../hooks/useSkinTypes'
 import prajahitaLogo from '../imports/PRAJAHITA_LOGO.jpeg'
 import backimgone from '../imports/backimgone.jpeg'
 import oats from '../imports/product_pics/oats.jpeg'
@@ -14,7 +15,7 @@ import coff from '../imports/product_pics/coff.jpeg'
 type Page = 'home' | 'shop' | 'product' | 'about' | 'ingredients' | /*'blog' |*/ 'contact' | 'cart' | 'checkout'
 
 type Props = {
-  onNavigate: (page: Page, id?: string) => void
+  onNavigate: (page: Page, id?: string, shopSearch?: string) => void
 }
 
 const whyUsItems = [
@@ -150,13 +151,15 @@ export default function Home({ onNavigate }: Props) {
   const [subscribed, setSubscribed] = useState(false)
   const { products } = useProducts()
   const { ingredients } = useIngredients()
+  const { skinTypes } = useSkinTypes()
 
-  const collections = useMemo(() => [
-    { id: 'acne-care', name: 'Acne Care', count: products.filter(p => p.category === 'Acne Care').length, image: products.find(p => p.category === 'Acne Care')?.image ?? prajahitaLogo, icon: '🌿' },
-    { id: 'dry-skin', name: 'Dry Skin', count: products.filter(p => p.category === 'Dry Skin').length, image: products.find(p => p.category === 'Dry Skin')?.image ?? prajahitaLogo, icon: '💧' },
-    { id: 'oily-skin', name: 'Oily Skin', count: products.filter(p => p.category === 'Oily Skin').length, image: products.find(p => p.category === 'Oily Skin')?.image ?? prajahitaLogo, icon: '✨' },
-    { id: 'sensitive-skin', name: 'Sensitive Skin', count: products.filter(p => p.category === 'Sensitive Skin').length, image: products.find(p => p.category === 'Sensitive Skin')?.image ?? prajahitaLogo, icon: '🌸' },
-  ], [products])
+  const collections = useMemo(() => skinTypes.slice(0, 5).map(skinType => ({
+    id: skinType.id,
+    name: skinType.name,
+    count: skinType.productIds.length,
+    image: skinType.image || products.find(product => skinType.productIds.includes(product.id))?.image || prajahitaLogo,
+    icon: '🌿',
+  })), [products, skinTypes])
 
   const tabFilters = useMemo(() => ({
     bestsellers: products.filter(p => p.badge === 'bestseller'),
@@ -551,11 +554,11 @@ export default function Home({ onNavigate }: Props) {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-5">
             {collections.map(col => (
               <button
                 key={col.id}
-                onClick={() => onNavigate('shop')}
+                onClick={() => onNavigate('shop', undefined, col.name)}
                 className="group relative rounded-2xl overflow-hidden aspect-[4/3] bg-cream-100"
               >
                 <img
