@@ -54,9 +54,6 @@ const fallbackProducts: Product[] = [
 ];
 function parseStringArray(value: unknown): string[] {
   if (Array.isArray(value)) {
-<<<<<<< HEAD
-    return value.filter((item): item is string => typeof item === 'string');
-=======
     return value.flatMap((item) => {
       if (typeof item === 'string') return [item];
       if (isPlainObject(item)) {
@@ -65,7 +62,6 @@ function parseStringArray(value: unknown): string[] {
       }
       return [];
     });
->>>>>>> 860a929 (Initial Shop project)
   }
   if (typeof value === 'string') {
     try {
@@ -118,7 +114,6 @@ function normalizeImageUrl(value: string | undefined): string | undefined {
   if (trimmed.startsWith('/')) {
     return trimmed;
   }
-<<<<<<< HEAD
   const storageBucket = (import.meta.env.VITE_SUPABASE_STORAGE_BUCKET as string | undefined)
     || (import.meta.env.VITE_SUPABASE_BUCKET_NAME as string | undefined);
 
@@ -136,8 +131,6 @@ function normalizeImageUrl(value: string | undefined): string | undefined {
   if (storageBucket && supabaseUrl) {
     return `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${storageBucket}/${trimmed.replace(/^\/+/, '')}`;
   }
-=======
->>>>>>> 860a929 (Initial Shop project)
   return trimmed;
 }
 function normalizeBadge(value: unknown): Product['badge'] | undefined {
@@ -158,20 +151,17 @@ function normalizeBadge(value: unknown): Product['badge'] | undefined {
   return undefined;
 }
 export function mapProductRow(row: any): Product {
-<<<<<<< HEAD
-=======
-    const relatedSkinTypes = Array.isArray(row.product_skin_types)
-      ? row.product_skin_types.flatMap((link: any) => {
-          const relatedSkinType = link?.skin_types ?? link?.skin_type;
-          const name = typeof relatedSkinType === 'string'
-            ? relatedSkinType
-            : relatedSkinType?.name;
-          return typeof name === 'string' ? [name] : [];
-        })
-      : [];
-    const directSkinTypes = parseStringArray(row.skin_type ?? row.skinTypes ?? row.skin_types ?? row.skin_type_names);
-    const skinTypes = Array.from(new Set([...relatedSkinTypes, ...directSkinTypes].map(value => value.trim()).filter(Boolean)));
->>>>>>> 860a929 (Initial Shop project)
+  const relatedSkinTypes = Array.isArray(row.product_skin_types)
+    ? row.product_skin_types.flatMap((link: any) => {
+        const relatedSkinType = link?.skin_types ?? link?.skin_type;
+        const name = typeof relatedSkinType === 'string'
+          ? relatedSkinType
+          : relatedSkinType?.name;
+        return typeof name === 'string' ? [name] : [];
+      })
+    : [];
+  const directSkinTypes = parseStringArray(row.skin_type ?? row.skinTypes ?? row.skin_types ?? row.skin_type_names);
+  const skinTypes = Array.from(new Set([...relatedSkinTypes, ...directSkinTypes].map(value => value.trim()).filter(Boolean)));
   const relatedImages = Array.isArray(row.product_images)
     ? row.product_images.flatMap((img: any) => parseImageArray(img?.images ?? img?.image_urls ?? img?.image_url ?? img?.url ?? img?.public_url ?? img?.path ?? img?.file_path ?? img?.storage_path))
     : [];
@@ -203,11 +193,7 @@ export function mapProductRow(row: any): Product {
     images: normalizedImages,
     badge: badge ?? 'new',
     category,
-<<<<<<< HEAD
-    skinType: parseStringArray(row.skin_type ?? row.skinTypes ?? row.skin_types),
-=======
     skinType: skinTypes,
->>>>>>> 860a929 (Initial Shop project)
     ingredients: parseStringArray(row.ingredients),
     fragrance: row.fragrance ?? '',
     weight: row.weight ?? '',
@@ -239,11 +225,7 @@ export async function getProducts() {
         if (row?.is_active === false) return false;
         return true;
       });
-<<<<<<< HEAD
-      return rows.length > 0 ? rows.map(mapProductRow) : fallbackProducts;
-=======
-      return rows.length > 0 ? enrichProductSkinTypes(rows) : fallbackProducts;
->>>>>>> 860a929 (Initial Shop project)
+  return rows.length > 0 ? enrichProductSkinTypes(rows) : fallbackProducts;
     }
     const fallbackQuery = await supabase
       .from('products')
@@ -257,18 +239,12 @@ export async function getProducts() {
       if (row?.is_active === false) return false;
       return true;
     });
-<<<<<<< HEAD
-    return rows.length > 0 ? rows.map(mapProductRow) : fallbackProducts;
-=======
     return rows.length > 0 ? enrichProductSkinTypes(rows) : fallbackProducts;
->>>>>>> 860a929 (Initial Shop project)
   } catch (error) {
     console.warn('Falling back to local product data because Supabase is unavailable:', error);
     return fallbackProducts;
   }
 }
-<<<<<<< HEAD
-=======
 
 export async function enrichProductSkinTypes(rows: any[]): Promise<Product[]> {
   const products = rows.map(mapProductRow);
@@ -309,7 +285,6 @@ export async function enrichProductSkinTypes(rows: any[]): Promise<Product[]> {
     skinType: Array.from(new Set(namesByProduct.get(product.id) ?? product.skinType)),
   }));
 }
->>>>>>> 860a929 (Initial Shop project)
 export function subscribeToProducts(onChange: (products: Product[]) => void) {
   if (!supabase) {
     return () => {};
