@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "skills": {
+    "unslop": {
+      "source": "OPSHARP/unslop",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "69d81a22e19b38f14bb2bf45b92b9ea9cc7b50c1436e0e1a4145b6d50cfff654",
+      "installMode": "copy"
+    }
+  }
+}

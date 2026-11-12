@@ -206,7 +206,7 @@ export default function Home({ onNavigate }: Props) {
               <span className="block text-4xl md:text-5xl font-normal italic">for Healthy Skin</span>
             </h1>
             <p className="text-lg md:text-[20px] leading-relaxed mb-10 max-w-xl bold-3px" style={{ color: 'rgb(22, 66, 0)' }}>
-              <b>100% natural, handmade, and cruelty-free. Each bar is crafted with Ayurvedic herbs, cold-process tradition, and love for both your skin and our planet.</b>
+              <b>100% natural, handmade, and cruelty-free. Each bar is crafted with Ayurvedic herbs using the cold-process method, with love for both your skin and our planet.</b>
             </p>
             <div className="flex flex-wrap gap-4">
               <button
@@ -304,7 +304,7 @@ export default function Home({ onNavigate }: Props) {
               Crafted for Your Skin
             </h4>
             <p className="text-bark-500 text-lg max-w-2xl mx-auto">
-              - Cold-processed using premium herbs. No sulphates. No parabens. Just nature goodness
+              Our soaps are cold-processed with herbs and contain no sulphates or parabens.
             </p>
           </div>
 

@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase'
 import { createOrder } from '../services/orderService'
 import { createNotification } from '../services/notificationService'
 import { generateUUID } from '../lib/uuid'
+import { createRazorpayOrder, openRazorpayCheckout, verifyRazorpayPayment } from '../services/razorpayService'
 
 type Page = 'home' | 'shop' | 'product' | 'about' | 'ingredients' | 'blog' | 'contact' | 'cart' | 'checkout'
 type Props = { onNavigate: (page: Page, id?: string) => void }
@@ -245,9 +246,12 @@ function CartView({ onNavigate, onCheckout }: { onNavigate: Props['onNavigate'];
 }
 
 function CheckoutForm({ onDone }: { onDone: () => void }) {
-  const { items, totalPrice, clearCart } = useCart()
+  const { items, clearCart, couponCode, discount } = useCart()
   const { products } = useProducts()
   const { authUser, loading: authLoading, ready: authReady } = useAuth()
+  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+  const shippingCost = subtotal >= 699 ? 0 : 79
+  const checkoutTotal = Math.round(subtotal * (1 - discount) + shippingCost)
   const [step, setStep] = useState<'shipping' | 'payment' | 'done'>('shipping')
   const [customerProfile, setCustomerProfile] = useState<Awaited<ReturnType<typeof getCustomerByAuthUserId>>>(null)
   const [addresses, setAddresses] = useState<CustomerAddress[]>([])
@@ -466,7 +470,7 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
 
   if (step === 'done') {
     const confirmationItems = completedOrder?.items ?? []
-    const confirmationTotal = completedOrder?.totalAmount ?? Math.round(totalPrice)
+    const confirmationTotal = completedOrder?.totalAmount ?? checkoutTotal
     const confirmationAddress = parseConfirmationAddress(completedOrder?.shippingAddress)
     const addressLines = [
       confirmationAddress.fullName,
@@ -671,9 +675,7 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
               <h2 className="font-serif text-2xl font-bold text-brown-800 mb-6">Payment Method</h2>
               <div className="space-y-3 mb-6">
                 {[
-                  { id: 'upi', label: 'UPI', desc: 'PhonePe, Google Pay, Paytm & more' },
-                  { id: 'card', label: 'Credit / Debit Card', desc: 'Visa, Mastercard, RuPay' },
-                  { id: 'netbanking', label: 'Net Banking', desc: 'All major Indian banks' },
+                  { id: 'razorpay', label: 'Pay Online', desc: 'UPI, cards, net banking & more with Razorpay' },
                   { id: 'cod', label: 'Cash on Delivery', desc: 'Available for orders up to ₹5,000' },
                 ].map(method => (
                   <label key={method.id} className="flex items-center gap-4 p-4 bg-white border border-cream-200 rounded-2xl cursor-pointer hover:border-sage-300 transition-colors">
@@ -701,6 +703,7 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                   onClick={async () => {
                     setSubmitting(true)
                     setMessage('')
+                    try {
                     if (!supabase) {
                       setMessage('Supabase is not configured.')
                       setSubmitting(false)
@@ -738,6 +741,84 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                     const customerId = customerResult.success ? customerResult.customer.id : customerProfile.id
                     const createdAt = new Date().toISOString()
                     const expectedDelivery = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
+                    const shippingAddress = {
+                      fullName: customerName,
+                      phone: shipping.phone,
+                      addressLine1: shipping.address,
+                      city: shipping.city,
+                      state: shipping.state,
+                      pincode: shipping.pincode,
+                      country: shipping.country,
+                    }
+
+                    if (paymentMethod === 'razorpay') {
+                      const razorpayOrder = await createRazorpayOrder({
+                        customerId,
+                        items: items.map(item => ({
+                          productId: item.product.id,
+                          quantity: item.quantity,
+                        })),
+                        couponCode: discount > 0 ? couponCode : '',
+                        shippingAddress,
+                      })
+
+                      await openRazorpayCheckout({
+                        order: razorpayOrder,
+                        customerName,
+                        customerEmail,
+                        customerPhone: shipping.phone,
+                        onSuccess: async payment => {
+                          setSubmitting(true)
+                          setMessage('Verifying your payment…')
+                          try {
+                            const verifiedOrder = await verifyRazorpayPayment(payment)
+                            const orderItems = items.map(item => ({
+                              productId: item.product.id,
+                              quantity: item.quantity,
+                              unitPrice: item.product.price,
+                              totalPrice: item.product.price * item.quantity,
+                            }))
+                            const completedOrderDetails = {
+                              orderId: verifiedOrder.orderId,
+                              orderNumber: verifiedOrder.orderNumber,
+                              orderDate: verifiedOrder.orderDate,
+                              totalAmount: verifiedOrder.totalAmount,
+                              paymentMethod: 'Razorpay',
+                              paymentStatus: verifiedOrder.paymentStatus,
+                              customerName,
+                              shippingAddress: JSON.stringify(shippingAddress),
+                              items: orderItems,
+                            }
+
+                            setCompletedOrder(completedOrderDetails)
+                            setStep('done')
+                            void createNotification({
+                              title: 'New Customer Order',
+                              message: `Order ${verifiedOrder.orderNumber} has been paid by ${customerName}`,
+                              type: 'order',
+                              notificationType: 'new_order',
+                              relatedEntityType: 'order',
+                              relatedEntityId: verifiedOrder.orderId,
+                              isRead: false,
+                            })
+                            void clearCart()
+                          } catch (error) {
+                            setMessage(error instanceof Error
+                              ? `${error.message} If money was deducted, contact support before trying again.`
+                              : 'Payment verification failed. If money was deducted, contact support before trying again.')
+                          } finally {
+                            setSubmitting(false)
+                          }
+                        },
+                        onDismiss: () => {
+                          setSubmitting(false)
+                          setMessage('Payment window closed. No payment was confirmed.')
+                        },
+                      })
+                      setSubmitting(false)
+                      return
+                    }
+
                     const databaseOrderResult = await createOrder({
                       id: orderUuid,
                       orderNumber: orderId,
@@ -745,16 +826,8 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                       orderDate: createdAt,
                       expectedDelivery,
                       paymentMethod,
-                      shippingAddress: JSON.stringify({
-                        fullName: customerName,
-                        phone: shipping.phone,
-                        addressLine1: shipping.address,
-                        city: shipping.city,
-                        state: shipping.state,
-                        pincode: shipping.pincode,
-                        country: shipping.country,
-                      }),
-                      totalAmount: Math.round(totalPrice),
+                      shippingAddress: JSON.stringify(shippingAddress),
+                      totalAmount: checkoutTotal,
                       items: items.map(item => ({
                         productId: item.product.id,
                         quantity: item.quantity,
@@ -775,7 +848,7 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                         orderId: orderUuid,
                         orderNumber: orderId,
                         orderDate: createdAt,
-                        totalAmount: Math.round(totalPrice),
+                        totalAmount: checkoutTotal,
                         paymentMethod,
                         paymentStatus: 'Pending',
                         customerName,
@@ -818,11 +891,15 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                       setMessage(databaseOrderResult.error ?? customerResult.error ?? 'Could not save the order right now.')
                     }
                     setSubmitting(false)
+                    } catch (error) {
+                      setMessage(error instanceof Error ? error.message : 'Could not start checkout. Please try again.')
+                      setSubmitting(false)
+                    }
                   }}
                   disabled={submitting}
                   className="flex-2 btn-gold py-3.5 rounded-2xl font-semibold text-sm disabled:opacity-70"
                 >
-                  {submitting ? 'Saving Order…' : `Place Order — ₹${Math.round(totalPrice)}`}
+                  {submitting ? (paymentMethod === 'razorpay' ? 'Preparing Payment…' : 'Saving Order…') : `Place Order — ₹${checkoutTotal}`}
                 </button>
               </div>
             </div>
@@ -847,9 +924,17 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                 </div>
               ))}
             </div>
+            <div className="space-y-2 text-sm text-brown-600 mb-4">
+              <div className="flex justify-between"><span>Subtotal</span><span>₹{Math.round(subtotal)}</span></div>
+              {discount > 0 && <div className="flex justify-between"><span>Discount</span><span>−₹{Math.round(subtotal * discount)}</span></div>}
+              <div className="flex justify-between">
+                <span>Shipping</span>
+                <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost}`}</span>
+              </div>
+            </div>
             <div className="flex justify-between font-bold text-brown-800 text-lg">
               <span>Total</span>
-              <span>₹{Math.round(totalPrice)}</span>
+              <span>₹{checkoutTotal}</span>
             </div>
           </div>
         </div>
