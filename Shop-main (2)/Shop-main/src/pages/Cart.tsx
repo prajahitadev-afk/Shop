@@ -675,7 +675,8 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
               <h2 className="font-serif text-2xl font-bold text-brown-800 mb-6">Payment Method</h2>
               <div className="space-y-3 mb-6">
                 {[
-                  { id: 'razorpay', label: 'Pay Online', desc: 'UPI, cards, net banking & more with Razorpay' },
+                  { id: 'upi', label: 'UPI', desc: 'Pay securely with UPI through Razorpay' },
+                  { id: 'card', label: 'Debit or Credit Card', desc: 'Pay securely by card through Razorpay' },
                   { id: 'cod', label: 'Cash on Delivery', desc: 'Available for orders up to ₹5,000' },
                 ].map(method => (
                   <label key={method.id} className="flex items-center gap-4 p-4 bg-white border border-cream-200 rounded-2xl cursor-pointer hover:border-sage-300 transition-colors">
@@ -751,7 +752,7 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                       country: shipping.country,
                     }
 
-                    if (paymentMethod === 'razorpay') {
+                    if (paymentMethod === 'upi' || paymentMethod === 'card') {
                       const razorpayOrder = await createRazorpayOrder({
                         customerId,
                         items: items.map(item => ({
@@ -760,10 +761,12 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                         })),
                         couponCode: discount > 0 ? couponCode : '',
                         shippingAddress,
+                        method: paymentMethod,
                       })
 
                       await openRazorpayCheckout({
                         order: razorpayOrder,
+                        method: paymentMethod,
                         customerName,
                         customerEmail,
                         customerPhone: shipping.phone,
@@ -899,7 +902,7 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                   disabled={submitting}
                   className="flex-2 btn-gold py-3.5 rounded-2xl font-semibold text-sm disabled:opacity-70"
                 >
-                  {submitting ? (paymentMethod === 'razorpay' ? 'Preparing Payment…' : 'Saving Order…') : `Place Order — ₹${checkoutTotal}`}
+                  {submitting ? (paymentMethod === 'upi' || paymentMethod === 'card' ? 'Preparing Payment…' : 'Saving Order…') : `Place Order — ₹${checkoutTotal}`}
                 </button>
               </div>
             </div>

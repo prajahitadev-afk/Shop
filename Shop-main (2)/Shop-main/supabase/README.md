@@ -31,3 +31,8 @@ product prices from Supabase before creating an order. The `razorpay-webhook`
 function verifies Razorpay's signature against the raw request body and marks
 the order paid only after a captured-payment event. The checkout callback also
 verifies the payment directly with Razorpay.
+
+Checkout offers UPI, debit/credit card, or Cash on Delivery. The selected
+Razorpay method is restricted in the hosted checkout and recorded as
+`razorpay_upi` or `razorpay_card`. Ensure both UPI and card payment methods are
+enabled for the Razorpay account when testing.

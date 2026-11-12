@@ -122,9 +122,11 @@ async function createOrder(request: Request, body: Record<string, unknown>) {
   const items = body.items
   const couponCode = typeof body.couponCode === 'string' ? body.couponCode.trim().toUpperCase() : ''
   const address = body.shippingAddress
+  const method = body.method
 
   if (!customerId || !Array.isArray(items) || items.length === 0 || items.length > 50
-    || !items.every(isCartItem) || !isShippingAddress(address)) {
+    || !items.every(isCartItem) || !isShippingAddress(address)
+    || (method !== 'upi' && method !== 'card')) {
     return jsonResponse({ error: 'Your cart or shipping details are incomplete. Please review them and try again.' }, 400)
   }
   if (couponCode && !(couponCode in couponDiscounts)) {
@@ -226,7 +228,7 @@ async function createOrder(request: Request, body: Record<string, unknown>) {
     status: 'Pending',
     total_amount: totalAmount,
     payment_status: 'Pending',
-    payment_method: 'razorpay',
+    payment_method: `razorpay_${method}`,
     shipping_address: shippingAddress,
     razorpay_order_id: razorpayResult.id,
     created_at: orderDate,
@@ -249,7 +251,7 @@ async function createOrder(request: Request, body: Record<string, unknown>) {
   const { error: paymentError } = await admin.from('payments').insert({
     id: crypto.randomUUID(),
     order_id: orderId,
-    payment_method: 'razorpay',
+    payment_method: `razorpay_${method}`,
     amount: totalAmount,
     status: 'Pending',
     created_at: orderDate,

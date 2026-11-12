@@ -30,6 +30,8 @@ export type RazorpayPaymentResponse = {
   razorpay_signature: string
 }
 
+export type RazorpayMethod = 'upi' | 'card'
+
 type RazorpayCheckoutOptions = {
   key: string
   amount: number
@@ -41,6 +43,16 @@ type RazorpayCheckoutOptions = {
     name: string
     email: string
     contact: string
+  }
+  config: {
+    display: {
+      blocks: Record<string, {
+        name: string
+        instruments: Array<{ method: RazorpayMethod }>
+      }>
+      sequence: string[]
+      preferences: { show_default_blocks: false }
+    }
   }
   theme: { color: string }
   handler: (response: RazorpayPaymentResponse) => void
@@ -107,6 +119,7 @@ export async function createRazorpayOrder(payload: {
   items: RazorpayCartItem[]
   couponCode: string
   shippingAddress: RazorpayShippingAddress
+  method: RazorpayMethod
 }) {
   return invokeRazorpay<RazorpayOrder>({
     action: 'create-order',
@@ -129,6 +142,7 @@ export async function verifyRazorpayPayment(payment: RazorpayPaymentResponse) {
 
 export async function openRazorpayCheckout(options: {
   order: RazorpayOrder
+  method: RazorpayMethod
   customerName: string
   customerEmail: string
   customerPhone: string
@@ -153,6 +167,18 @@ export async function openRazorpayCheckout(options: {
       name: options.customerName,
       email: options.customerEmail,
       contact: options.customerPhone,
+    },
+    config: {
+      display: {
+        blocks: {
+          [options.method]: {
+            name: options.method === 'upi' ? 'Pay using UPI' : 'Pay by debit or credit card',
+            instruments: [{ method: options.method }],
+          },
+        },
+        sequence: [`block.${options.method}`],
+        preferences: { show_default_blocks: false },
+      },
     },
     theme: { color: '#567051' },
     handler: options.onSuccess,
