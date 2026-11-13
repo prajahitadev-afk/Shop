@@ -1,4 +1,4 @@
-import { supabase, debugSupabaseAuthContext } from './supabase'
+import { supabase } from './supabase'
 import { getCustomerByAuthUserId, saveCustomerToDatabase } from '../services/customerService'
 import { getCustomerAddresses } from '../services/addressService'
 import { generateUUID } from './uuid'
@@ -57,7 +57,6 @@ function mapSupabaseUser(user: { id: string; email?: string | null; user_metadat
 
 async function ensureCustomerForAuthUser(user: AuthUser) {
   const customer = await getCustomerByAuthUserId(user.id)
-  console.log('CUSTOMER RECORD', customer)
 
   if (customer) {
     return customer
@@ -71,7 +70,6 @@ async function ensureCustomerForAuthUser(user: AuthUser) {
     authUserId: user.id,
   })
 
-  console.log('CUSTOMER RECORD', createdCustomer.customer)
   return createdCustomer.customer
 }
 
@@ -94,12 +92,6 @@ export async function registerUser(name: string, email: string, password: string
     options: { data: { name: trimmedName } },
   })
 
-  console.log('SIGNUP ERROR', error)
-  console.log('SIGNUP RESPONSE', {
-    user: data?.user,
-    session: data?.session,
-    error,
-  })
 
   if (error) {
     const message = error.message?.toLowerCase() ?? ''
@@ -134,7 +126,6 @@ export async function registerUser(name: string, email: string, password: string
   }
 
   if (!data.session) {
-    await debugSupabaseAuthContext('customer signup')
     await ensureCustomerForAuthUser(user)
     return {
       success: true as const,
@@ -144,7 +135,6 @@ export async function registerUser(name: string, email: string, password: string
     }
   }
 
-  await debugSupabaseAuthContext('customer signup')
   await ensureCustomerForAuthUser(user)
 
   return { success: true as const, user, needsVerification: false }
@@ -167,25 +157,17 @@ export async function loginUser(email: string, password: string) {
     password: trimmedPassword,
   })
 
-  console.log('LOGIN RESPONSE', {
-    session: data?.session,
-    user: data?.user,
-    error,
-  })
 
   if (error) {
     return { success: false as const, error: error.message }
   }
 
-  console.log('LOGIN USER', data.user)
-  console.log('LOGIN SESSION', data.session)
 
   const user = mapSupabaseUser(data.user, 'Customer')
   if (!user) {
     return { success: false as const, error: 'Unable to load customer auth session.' }
   }
 
-  await debugSupabaseAuthContext('customer login')
   await ensureCustomerForAuthUser(user)
 
   return { success: true as const, user }
@@ -194,10 +176,9 @@ export async function loginUser(email: string, password: string) {
 export async function restoreSupabaseSession() {
   if (!supabase || typeof window === 'undefined') return null
 
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  console.log('RESTORE_SESSION', { session, user, sessionError, userError })
 
   if (!session || !user) {
     return null

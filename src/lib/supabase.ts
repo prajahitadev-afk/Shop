@@ -15,18 +15,3 @@ export const supabase = hasSupabaseConfig
       },
     })
   : null
-
-export async function debugSupabaseAuthContext(label: string) {
-  if (!supabase) {
-    console.log(label, 'SUPABASE_NOT_CONFIGURED')
-    return { session: null, user: null }
-  }
-
-  const [{ data: { session } }, { data: { user } }] = await Promise.all([
-    supabase.auth.getSession(),
-    supabase.auth.getUser(),
-  ])
-
-  console.log(label, { session, user })
-  return { session, user }
-}

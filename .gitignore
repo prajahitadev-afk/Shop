@@ -1,16 +1,14 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 860a929 (Initial Shop project)
 # Dependencies
 node_modules/
-pnpm-lock.yaml
 
 # Build outputs
 dist/
 build/
 
 # Environment variables
+.env
+.env.*
+!.env.example
 # Logs
 npm-debug.log*
 pnpm-debug.log*
@@ -29,10 +27,6 @@ Thumbs.db
 
 # Test coverage
 coverage/
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 860a929 (Initial Shop project)
 # Logs
 logs
 *.log
@@ -170,13 +164,9 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
-<<<<<<< HEAD
->>>>>>> 6369066909a08b7b0320506890c73cad59efa41e
 # the env files
 .env
-=======
 # Environment variables
 .env
 .env.*
 !.env.example
->>>>>>> 860a929 (Initial Shop project)

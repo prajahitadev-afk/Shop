@@ -52,7 +52,6 @@ function CartView({ onNavigate, onCheckout }: { onNavigate: Props['onNavigate'];
   const shipping = subtotal >= 699 ? 0 : 79
   const total = subtotal - savings + shipping
   const suggested = products.filter(p => !items.find(i => i.product.id === p.id)).slice(0, 4)
-  console.log('CART_RENDER_ITEM_COUNT', { count: items.length })
 
   const applyCoupon = () => {
     setCouponCode(couponInput)
@@ -150,12 +149,14 @@ function CartView({ onNavigate, onCheckout }: { onNavigate: Props['onNavigate'];
 
           {/* Coupon */}
           <div className="mb-5">
-            <label className="text-xs font-semibold text-brown-500 mb-2 block">Coupon Code</label>
+            <label htmlFor="coupon-code" className="text-xs font-semibold text-brown-500 mb-2 block">Coupon Code</label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-brown-400" />
                 <input
+                  id="coupon-code"
                   type="text"
+                  autoComplete="off"
                   placeholder="e.g. FIRSTBUY15"
                   value={couponCode || couponInput}
                   onChange={e => { setCouponInput(e.target.value); setCouponError('') }}
@@ -301,9 +302,7 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
     if (!authUser) return
 
     const loadCustomerProfile = async () => {
-      console.log('AUTH USER', authUser)
       const customer = await getCustomerByAuthUserId(authUser.id)
-      console.log('CUSTOMER', customer)
       setCustomerProfile(customer)
 
       setShipping(prev => ({
@@ -393,8 +392,6 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
 
     const supabaseClient = supabase
     const { data: { session } } = await supabaseClient.auth.getSession()
-    console.log('ACTIVE SESSION', session)
-    console.log('ACTIVE CUSTOMER', customerProfile)
 
     if (!session) {
       setMessage('Please sign in before checkout.')
@@ -595,36 +592,36 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                 <div className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-semibold text-brown-500 mb-1.5">Full Name</label>
-                      <input value={addressDraft.fullName} onChange={e => setAddressDraft(d => ({ ...d, fullName: e.target.value }))} className={inputCls} placeholder="Priya Sharma" />
+                      <label htmlFor="address-full-name" className="block text-xs font-semibold text-brown-500 mb-1.5">Full Name</label>
+                      <input id="address-full-name" value={addressDraft.fullName} onChange={e => setAddressDraft(d => ({ ...d, fullName: e.target.value }))} className={inputCls} placeholder="Priya Sharma" />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-brown-500 mb-1.5">Phone</label>
-                      <input value={addressDraft.phone} onChange={e => setAddressDraft(d => ({ ...d, phone: e.target.value }))} className={inputCls} placeholder="+91 98765 43210" />
+                      <label htmlFor="address-phone" className="block text-xs font-semibold text-brown-500 mb-1.5">Phone</label>
+                      <input id="address-phone" value={addressDraft.phone} onChange={e => setAddressDraft(d => ({ ...d, phone: e.target.value }))} className={inputCls} placeholder="+91 98765 43210" />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-brown-500 mb-1.5">Country</label>
-                      <input value={addressDraft.country} onChange={e => setAddressDraft(d => ({ ...d, country: e.target.value }))} className={inputCls} placeholder="India" />
+                      <label htmlFor="address-country" className="block text-xs font-semibold text-brown-500 mb-1.5">Country</label>
+                      <input id="address-country" value={addressDraft.country} onChange={e => setAddressDraft(d => ({ ...d, country: e.target.value }))} className={inputCls} placeholder="India" />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-semibold text-brown-500 mb-1.5">Address Line 1</label>
-                      <input value={addressDraft.addressLine1} onChange={e => setAddressDraft(d => ({ ...d, addressLine1: e.target.value }))} className={inputCls} placeholder="47 Koramangala, 4th Block" />
+                      <label htmlFor="address-address-line-1" className="block text-xs font-semibold text-brown-500 mb-1.5">Address Line 1</label>
+                      <input id="address-address-line-1" value={addressDraft.addressLine1} onChange={e => setAddressDraft(d => ({ ...d, addressLine1: e.target.value }))} className={inputCls} placeholder="47 Koramangala, 4th Block" />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-semibold text-brown-500 mb-1.5">Address Line 2</label>
-                      <input value={addressDraft.addressLine2} onChange={e => setAddressDraft(d => ({ ...d, addressLine2: e.target.value }))} className={inputCls} placeholder="Near Forum Mall" />
+                      <label htmlFor="address-address-line-2" className="block text-xs font-semibold text-brown-500 mb-1.5">Address Line 2</label>
+                      <input id="address-address-line-2" value={addressDraft.addressLine2} onChange={e => setAddressDraft(d => ({ ...d, addressLine2: e.target.value }))} className={inputCls} placeholder="Near Forum Mall" />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-brown-500 mb-1.5">City</label>
-                      <input value={addressDraft.city} onChange={e => setAddressDraft(d => ({ ...d, city: e.target.value }))} className={inputCls} placeholder="Bangalore" />
+                      <label htmlFor="address-city" className="block text-xs font-semibold text-brown-500 mb-1.5">City</label>
+                      <input id="address-city" value={addressDraft.city} onChange={e => setAddressDraft(d => ({ ...d, city: e.target.value }))} className={inputCls} placeholder="Bangalore" />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-brown-500 mb-1.5">State</label>
-                      <input value={addressDraft.state} onChange={e => setAddressDraft(d => ({ ...d, state: e.target.value }))} className={inputCls} placeholder="Karnataka" />
+                      <label htmlFor="address-state" className="block text-xs font-semibold text-brown-500 mb-1.5">State</label>
+                      <input id="address-state" value={addressDraft.state} onChange={e => setAddressDraft(d => ({ ...d, state: e.target.value }))} className={inputCls} placeholder="Karnataka" />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-brown-500 mb-1.5">Pincode</label>
-                      <input value={addressDraft.pincode} onChange={e => setAddressDraft(d => ({ ...d, pincode: e.target.value }))} className={inputCls} placeholder="560034" />
+                      <label htmlFor="address-pincode" className="block text-xs font-semibold text-brown-500 mb-1.5">Pincode</label>
+                      <input id="address-pincode" value={addressDraft.pincode} onChange={e => setAddressDraft(d => ({ ...d, pincode: e.target.value }))} className={inputCls} placeholder="560034" />
                     </div>
                     <div className="flex items-center gap-2 pt-2">
                       <input id="default-address" type="checkbox" checked={addressDraft.isDefault} onChange={e => setAddressDraft(d => ({ ...d, isDefault: e.target.checked }))} className="accent-sage-500" />
@@ -709,8 +706,6 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
 
                     const supabaseClient = supabase
                     const { data: { session } } = await supabaseClient.auth.getSession()
-                    console.log('ACTIVE SESSION', session)
-                    console.log('ACTIVE CUSTOMER', customerProfile)
 
                     if (!session || !customerProfile) {
                       setMessage('Please sign in before checkout.')
@@ -721,9 +716,7 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                     const orderId = `ORD-${Math.floor(Math.random() * 90000) + 10000}`
                     const orderUuid = generateUUID()
                     const customerName = shipping.name || authUser?.name || customerProfile.first_name || 'Customer'
-                    console.log('CHECKOUT_CUSTOMER_IDS', { authUserId: authUser?.id ?? null, customerProfileId: customerProfile?.id ?? null })
                     const customerEmail = (shipping.email || authUser?.email || customerProfile.email || '').toLowerCase()
-                    console.log('ORDER CUSTOMER ID', customerProfile.id)
                     const customerResult = await saveCustomerToDatabase({
                       id: customerProfile.id,
                       name: customerName,
@@ -796,11 +789,7 @@ function CheckoutForm({ onDone }: { onDone: () => void }) {
                         })),
                       }
 
-                      console.log('CONFIRMATION_ADDRESS_OBJECT', completedOrderDetails.shippingAddress)
-                      console.log('CONFIRMATION_ITEMS', completedOrderDetails.items)
-                      console.log('CONFIRMATION_ITEM_COUNT', completedOrderDetails.items.length)
                       setCompletedOrder(completedOrderDetails)
-                      console.log('ORDER_CONFIRMATION_DATA', completedOrderDetails)
                       setMessage('Order saved successfully.')
                       setStep('done')
 

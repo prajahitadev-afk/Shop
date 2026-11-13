@@ -44,10 +44,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const cartScope = customer?.id ? `customer:${customer.id}` : authUser?.id ? `user:${authUser.id}` : 'guest'
 
   const applyCartItems = (nextItems: CartItem[]) => {
-    console.log('CART_STATE_UPDATED', {
-      count: nextItems.length,
-      items: nextItems.map(item => ({ id: item.product.id, quantity: item.quantity })),
-    })
     setItems(nextItems)
   }
 
@@ -62,7 +58,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       if (!customer?.id) return
 
-      console.log('CART_CONTEXT_CUSTOMER', { authUserId: authUser?.id ?? null, customerId: customer.id })
       const dbItems = await loadCartFromDatabase(customer.id, products, cartScope)
       if (dbItems.length > 0 || localItems.length === 0) {
         applyCartItems(dbItems)
@@ -84,10 +79,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(prev => {
       const nextItems = optimisticItems(prev)
       saveLocalCart(cartScope, nextItems)
-      console.log('CART_STATE_UPDATED', {
-        count: nextItems.length,
-        items: nextItems.map(item => ({ id: item.product.id, quantity: item.quantity })),
-      })
       return nextItems
     })
 

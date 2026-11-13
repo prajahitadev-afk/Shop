@@ -9,7 +9,7 @@ type Page = 'home' | 'shop' | 'product' | 'about' | 'ingredients' | 'blog' | 'co
 
 type Props = {
   currentPage: Page
-  onNavigate: (page: Page, id?: string) => void
+  onNavigate: (page: Page, id?: string, shopSearch?: string) => void
   user?: AuthUser | null
   onLogout?: () => void
 }
@@ -21,6 +21,10 @@ const navItems = [
   //{ label: 'Blog', page: 'blog' as Page },
   { label: 'Contact', page: 'contact' as Page },
 ]
+
+const pagePaths: Partial<Record<Page, string>> = {
+  home: '/', shop: '/shop', ingredients: '/ingredients', contact: '/contact', cart: '/cart',
+}
 
 export default function Navbar({ currentPage, onNavigate, user, onLogout }: Props) {
   const { totalItems, wishlist } = useCart()
@@ -61,7 +65,7 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
       </div>
 
       {/* Main navbar */}
-      <nav className={`sticky top-0 z-50 transition-all duration-300 ${
+      <nav aria-label="Main" className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled || !isHome
           ? 'glass shadow-[0_2px_24px_rgba(45,80,22,0.10)]'
           : 'bg-transparent'
@@ -69,12 +73,18 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-18">
             {/* Logo */}
-            <button
-              onClick={() => onNavigate('home')}
+            <a
+              href="/"
+              onClick={e => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+                e.preventDefault()
+                onNavigate('home')
+              }}
+              aria-label="Prajahita home"
               className="flex items-center gap-2.5 group"
             >
               <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-md group-hover:shadow-lg transition-shadow flex-shrink-0 bg-white">
-                <img src={prajahitaLogo} alt="PRAJAHITA logo" className="w-20px h-20px object-contain size-30px" />
+                <img src={prajahitaLogo} alt="" className="w-20px h-20px object-contain size-30px" />
               </div>
               <div className="leading-none">
                 <div className={`font-serif font-bold text-xl tracking-tight`} style={{ color: 'rgb(94, 69, 0)' }}>
@@ -86,7 +96,7 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
                   HOMEMADE Soaps
                 </div>
               </div>
-            </button>
+            </a>
 
             {/* Desktop Nav */}
             <div className="hidden lg:flex items-center gap-1">
@@ -97,8 +107,14 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
                   onMouseEnter={() => item.hasDropdown && setActiveDropdown(item.page)}
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
-                  <button
-                    onClick={() => onNavigate(item.page)}
+                  <a
+                    href={pagePaths[item.page] ?? '/'}
+                    onClick={e => {
+                      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+                      e.preventDefault()
+                      onNavigate(item.page)
+                    }}
+                    aria-current={currentPage === item.page ? 'page' : undefined}
                     className={`nav-link flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                       currentPage === item.page
                         ? scrolled || !isHome ? 'text-sage-600' : 'text-gold-300'
@@ -106,8 +122,8 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
                     } ${currentPage === item.page ? 'active' : ''}`}
                   >
                     {item.label}
-                    {item.hasDropdown && <ChevronDown size={13} className="opacity-60" />}
-                  </button>
+                    {item.hasDropdown && <ChevronDown size={13} className="opacity-60" aria-hidden="true" />}
+                  </a>
                   {item.hasDropdown && activeDropdown === item.page && (
                     <div className="absolute top-full left-0 mt-1 w-52 glass rounded-2xl shadow-xl py-2 border border-cream-200/60">
                       {item.dropdown?.map(sub => (
@@ -135,8 +151,9 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
                     : 'text-cream-100 hover:text-gold-300 hover:bg-white/10'
                 }`}
                 aria-label="Search"
+                aria-expanded={searchOpen}
               >
-                <Search size={19} />
+                <Search size={19} aria-hidden="true" />
               </button>
 
               <button
@@ -146,9 +163,9 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
                     ? 'text-brown-600 hover:text-sage-600 hover:bg-cream-100'
                     : 'text-cream-100 hover:text-gold-300 hover:bg-white/10'
                 }`}
-                aria-label="Wishlist"
+                aria-label={wishlist.length > 0 ? `Wishlist, ${wishlist.length} saved` : 'Wishlist'}
               >
-                <Heart size={19} />
+                <Heart size={19} aria-hidden="true" />
                 {wishlist.length > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-gold-400 text-brown-900 text-[9px] font-bold rounded-full flex items-center justify-center">
                     {wishlist.length}
@@ -163,9 +180,9 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
                     ? 'text-brown-600 hover:text-sage-600 hover:bg-cream-100'
                     : 'text-cream-100 hover:text-gold-300 hover:bg-white/10'
                 }`}
-                aria-label="Cart"
+                aria-label={totalItems > 0 ? `Cart, ${totalItems} ${totalItems === 1 ? 'item' : 'items'}` : 'Cart'}
               >
-                <ShoppingBag size={19} />
+                <ShoppingBag size={19} aria-hidden="true" />
                 {totalItems > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-sage-500 text-cream-50 text-[9px] font-bold rounded-full flex items-center justify-center">
                     {totalItems}
@@ -182,7 +199,7 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
                 }`}
                 aria-label="Account"
               >
-                <User size={19} />
+                <User size={19} aria-hidden="true" />
               </button>
 
               {/* Mobile hamburger */}
@@ -193,7 +210,8 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
                     ? 'text-brown-700 hover:bg-cream-100'
                     : 'text-cream-100 hover:bg-white/10'
                 }`}
-                aria-label="Menu"
+                aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={mobileOpen}
               >
                 {mobileOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
@@ -202,33 +220,47 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
 
           {/* Search bar */}
           {searchOpen && (
-            <div className="pb-4">
+            <form
+              role="search"
+              className="pb-4"
+              onSubmit={e => {
+                e.preventDefault()
+                const query = searchQuery.trim()
+                if (!query) return
+                setSearchOpen(false)
+                onNavigate('shop', undefined, query)
+              }}
+            >
               <div className="relative">
-                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brown-400" />
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brown-400" aria-hidden="true" />
                 <input
                   autoFocus
-                  type="text"
-                  placeholder="Search for soaps, ingredients, skin concerns..."
+                  type="search"
+                  aria-label="Search soaps, ingredients or skin concerns"
+                  placeholder="Search soaps, ingredients or skin concerns"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-white/90 backdrop-blur border border-cream-300 rounded-2xl text-sm text-brown-800 placeholder-brown-400 focus:outline-none focus:ring-2 focus:ring-sage-400/40 focus:border-sage-400"
                 />
               </div>
-            </div>
+            </form>
           )}
         </div>
 
         {/* Wishlist panel */}
         {showWishlistPanel && (
-          <div className="fixed inset-0 z-[60] flex items-start justify-center bg-brown-900/40 p-3 pt-4 sm:p-4 sm:pt-6 backdrop-blur-[2px]">
-            <div className="w-full max-w-md rounded-[28px] border border-cream-200 bg-white shadow-2xl p-5">
+          <div
+            className="fixed inset-0 z-[60] flex items-start justify-center bg-brown-900/40 p-3 pt-4 sm:p-4 sm:pt-6 backdrop-blur-[2px]"
+            onKeyDown={e => e.key === 'Escape' && setShowWishlistPanel(false)}
+          >
+            <div role="dialog" aria-modal="true" aria-label="Your favorites" className="w-full max-w-md rounded-[28px] border border-cream-200 bg-white shadow-2xl p-5">
               <div className="flex items-start justify-between mb-4">
                 <div className="space-y-2">
                   <p className="text-xs uppercase tracking-[0.24em] text-gold-500 font-semibold">Saved items</p>
                   <h3 className="font-serif text-xl font-bold text-brown-800">Your favorites</h3>
                 </div>
-                <button onClick={() => setShowWishlistPanel(false)} className="p-2 text-brown-500 hover:text-brown-700">
-                  <X size={18} />
+                <button autoFocus onClick={() => setShowWishlistPanel(false)} aria-label="Close favorites" className="p-2 text-brown-500 hover:text-brown-700">
+                  <X size={18} aria-hidden="true" />
                 </button>
               </div>
 
@@ -240,7 +272,7 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
 
                     return (
                       <div key={product.id} className="flex items-center gap-3 rounded-2xl border border-cream-200 bg-cream-50 px-3 py-3">
-                        <img src={product.image} alt={product.name} className="h-14 w-14 rounded-xl object-cover" />
+                        <img src={product.image} alt={product.name} loading="lazy" className="h-14 w-14 rounded-xl object-cover" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-brown-800 line-clamp-1">{product.name}</p>
                           <p className="text-xs text-brown-500">{product.category}</p>
@@ -269,15 +301,18 @@ export default function Navbar({ currentPage, onNavigate, user, onLogout }: Prop
 
         {/* Account panel */}
         {showAccountPanel && (
-          <div className="fixed inset-0 z-[60] flex items-start justify-center bg-brown-900/40 p-3 pt-4 sm:p-4 sm:pt-6 backdrop-blur-[2px]">
-            <div className="w-full max-w-md rounded-[28px] border border-cream-200 bg-white shadow-2xl p-5">
+          <div
+            className="fixed inset-0 z-[60] flex items-start justify-center bg-brown-900/40 p-3 pt-4 sm:p-4 sm:pt-6 backdrop-blur-[2px]"
+            onKeyDown={e => e.key === 'Escape' && setShowAccountPanel(false)}
+          >
+            <div role="dialog" aria-modal="true" aria-label="Account" className="w-full max-w-md rounded-[28px] border border-cream-200 bg-white shadow-2xl p-5">
               <div className="flex items-start justify-between mb-4">
                 <div className="space-y-1">
                   <p className="text-xs uppercase tracking-[0.24em] text-gold-500 font-semibold">Account</p>
                   <h3 className="font-serif text-xl font-bold text-brown-800">Sign in or create account</h3>
                 </div>
-                <button onClick={() => setShowAccountPanel(false)} className="p-2 text-brown-500 hover:text-brown-700">
-                  <X size={18} />
+                <button autoFocus onClick={() => setShowAccountPanel(false)} aria-label="Close account panel" className="p-2 text-brown-500 hover:text-brown-700">
+                  <X size={18} aria-hidden="true" />
                 </button>
               </div>
 
