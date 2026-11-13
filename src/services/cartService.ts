@@ -8,6 +8,9 @@ export type CartDbItem = {
   quantity: number
 }
 
+/** A cart line as stored locally; database ids are only known after syncing. */
+export type CartLine = Pick<CartDbItem, 'product' | 'quantity'>
+
 const LOCAL_CART_KEY_PREFIX = 'prajahita-cart:'
 
 function readStoredCartItems(scope = 'guest') {
@@ -21,7 +24,7 @@ function readStoredCartItems(scope = 'guest') {
   }
 }
 
-function writeStoredCartItems(items: CartDbItem[], scope = 'guest') {
+function writeStoredCartItems(items: CartLine[], scope = 'guest') {
   if (typeof window === 'undefined') return
   window.localStorage.setItem(`${LOCAL_CART_KEY_PREFIX}${scope}`, JSON.stringify(items))
 }
@@ -30,14 +33,13 @@ export function loadLocalCart(scope: string, products: Product[]) {
   return readStoredCartItems(scope).filter(item => products.some(product => product.id === item.product.id))
 }
 
-export function saveLocalCart(scope: string, items: CartDbItem[]) {
+export function saveLocalCart(scope: string, items: CartLine[]) {
   writeStoredCartItems(items, scope)
 }
 
 async function getOrCreateCart(customerId: string) {
   if (!supabase) return null
 
-  console.log('CART_SERVICE_CUSTOMER_ID', { customerId })
 
   const { data: existingCart, error: cartLookupError } = await supabase
     .from('carts')
@@ -50,7 +52,6 @@ async function getOrCreateCart(customerId: string) {
   }
 
   if (existingCart) {
-    console.log('CART_SERVICE_FOUND', { cart: existingCart })
     return existingCart as CartRecord
   }
 
@@ -64,7 +65,6 @@ async function getOrCreateCart(customerId: string) {
     throw createCartError
   }
 
-  console.log('CART_SERVICE_CREATED', { cart: createdCart })
   return createdCart as CartRecord | null
 }
 
@@ -140,8 +140,6 @@ export async function loadCartFromDatabase(customerId: string, products: Product
       })
       .filter((item): item is CartDbItem => item !== null)
 
-    console.log('DB_CART_LOADED', { customerId, count: items.length, items: items.map(item => ({ id: item.product.id, quantity: item.quantity })) })
-    console.log('DB_CART_ITEM_COUNT', { customerId, count: items.length })
     writeStoredCartItems(items, localScope)
     return items
   } catch {

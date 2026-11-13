@@ -1,4 +1,8 @@
 {
-  "title": "E-commerce Website",
-  "description": "Enterprise e-commerce platform"
+  "title": "Prajahita | Handmade Herbal Soaps",
+  "description": "Prajahita creates handcrafted herbal soaps and natural skincare essentials made with Ayurvedic ingredients and eco-conscious values.",
+  "language": "en",
+  "accessibility": {
+    "addBypassLinks": true
+  }
 }

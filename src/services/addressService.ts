@@ -1,4 +1,4 @@
-import { supabase, debugSupabaseAuthContext } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import { generateUUID } from '../lib/uuid'
 
 export type CustomerAddress = {
@@ -90,7 +90,6 @@ export async function getCustomerAddresses(customerId: string): Promise<Customer
 }
 
 export async function saveCustomerAddress(payload: CustomerAddressPayload) {
-  await debugSupabaseAuthContext('customer address insert')
 
   const address: CustomerAddress = {
     id: payload.id ?? generateUUID(),

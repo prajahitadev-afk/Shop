@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext'
 import ProductCard from '../components/ProductCard'
 import { useProducts } from '../hooks/useProducts'
 import { supabase } from '../lib/supabase'
+import { usePageMeta, SITE_NAME } from '../lib/seo'
 import { getProductIngredientNames, getRelatedProductIds } from '../services/ingredientService'
 
 type Page = 'home' | 'shop' | 'product' | 'about' | 'ingredients' | 'blog' | 'contact' | 'cart' | 'checkout'
@@ -31,6 +32,7 @@ function AccordionItem({ title, children }: { title: string; children: React.Rea
     <div className="border-b border-cream-200">
       <button
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
         className="flex items-center justify-between w-full py-4 text-left"
       >
         <span className="font-semibold text-brown-800">{title}</span>
@@ -64,6 +66,30 @@ export default function ProductDetail({ productId, onNavigate }: Props) {
   const discount = product?.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0
+
+  usePageMeta({
+    title: product ? `${product.name} | ${SITE_NAME}` : `Product | ${SITE_NAME}`,
+    description: product ? `${product.tagline}. ${product.description}`.slice(0, 160) : undefined,
+    jsonLd: product
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: product.name,
+          description: product.description,
+          image: product.images?.length ? product.images : product.image ? [product.image] : undefined,
+          brand: { '@type': 'Brand', name: SITE_NAME },
+          ...(product.reviewCount > 0
+            ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: product.rating, reviewCount: product.reviewCount } }
+            : {}),
+          offers: {
+            '@type': 'Offer',
+            priceCurrency: 'INR',
+            price: product.price,
+            availability: product.inStock === false ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+          },
+        }
+      : null,
+  })
 
   useEffect(() => {
     if (!product?.id) {

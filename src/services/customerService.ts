@@ -1,4 +1,4 @@
-import { supabase, debugSupabaseAuthContext } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import { generateUUID } from '../lib/uuid'
 import type { Customer } from '../types/customer'
 
@@ -140,8 +140,6 @@ export async function getCustomerByAuthUserId(authUserId: string) {
 
 export async function saveCustomerToDatabase(payload: CustomerPayload) {
   const customer = buildCustomer(payload)
-  await debugSupabaseAuthContext('customer insert')
-  console.log('CUSTOMER', customer)
 
   if (!supabase) {
     writeStoredCustomers(mergeCustomers([customer, ...readStoredCustomers()]))

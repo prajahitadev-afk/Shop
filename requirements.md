@@ -26,16 +26,16 @@ To run this project locally, install the dependencies listed below.
 Run the following in the project root:
 
 ```bash
-pnpm install
+npm install
 ```
 
 ## Recommended Environment
 - Node.js 20+
-- pnpm
+- npm
 
 ## Quick Start
 ```bash
-pnpm dev
+npm run dev
 ```
 
 This will start the Vite development server for the app.

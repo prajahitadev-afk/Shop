@@ -31,7 +31,6 @@ function mapSupabaseAuthUser(user: { id: string; email?: string | null; user_met
 
 export async function loadCustomer(userId: string) {
   const customer = await getCustomerByAuthUserId(userId)
-  console.log('CUSTOMER RECORD', customer)
   return customer
 }
 
@@ -55,14 +54,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      const [{ data: { session } }, { data: { user }, error: userError }] = await Promise.all([
-        supabase.auth.getSession(),
-        supabase.auth.getUser(),
-      ])
+      const { data: { user } } = await supabase.auth.getUser()
 
       if (!mounted) return
 
-      console.log('AUTH_PROVIDER_INIT', { session, user, userError })
 
       const nextUser = mapSupabaseAuthUser(user)
       setAuthUserState(nextUser)

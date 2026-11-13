@@ -1,4 +1,4 @@
-import { supabase, debugSupabaseAuthContext } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import { createPaymentRecord } from './paymentService'
 
 export type OrderItemPayload = {
@@ -74,7 +74,6 @@ export async function loadOrdersFromDatabase(customerId: string) {
 }
 
 export async function saveOrderToDatabase(order: OrderPayload) {
-  await debugSupabaseAuthContext('order insert')
 
   const createdAt = order.createdAt
   const orderNumber = order.orderNumber ?? order.id

@@ -1,3 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /cart
+Disallow: /checkout
+Disallow: /login
+Disallow: /signup
+Disallow: /orders
 Sitemap: https://your-domain.com/sitemap.xml

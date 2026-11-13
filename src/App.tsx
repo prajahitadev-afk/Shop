@@ -13,6 +13,7 @@ import Cart from './pages/Cart'
 import AuthPage from './pages/AuthPage'
 import OrdersPage from './pages/OrdersPage'
 import { logoutUser, type AuthUser } from './lib/auth'
+import { usePageMeta } from './lib/seo'
 import { useAuth, AuthProvider } from './context/AuthContext'
 import { ArrowUp, MessageCircle, X } from 'lucide-react'
 
@@ -25,6 +26,33 @@ type NavState = {
 }
 
 const defaultProductId = 'neem-turmeric-glow'
+
+const PAGE_META: Record<Page, { title: string; description: string; noindex?: boolean }> = {
+  home: {
+    title: 'Prajahita | Handmade Herbal Soaps',
+    description: 'Handcrafted herbal soaps made with Ayurvedic ingredients, botanical oils and gentle care for every skin type.',
+  },
+  shop: {
+    title: 'Shop Herbal Soaps | Prajahita',
+    description: 'Browse Prajahita handmade herbal soaps by skin type, concern and ingredient. Free shipping above ₹699.',
+  },
+  product: { title: 'Product | Prajahita', description: '' },
+  about: { title: 'About Us | Prajahita', description: 'Learn how Prajahita makes small-batch herbal soaps with Ayurvedic ingredients.' },
+  ingredients: {
+    title: 'Natural Ingredients | Prajahita',
+    description: 'See the herbs, oils and clays in every Prajahita soap and what each one does for your skin.',
+  },
+  blog: { title: 'Blog | Prajahita', description: 'Skincare tips and Ayurvedic know-how from Prajahita.' },
+  contact: {
+    title: 'Contact Us | Prajahita',
+    description: 'Questions about an order or which soap suits your skin? Get in touch with the Prajahita team.',
+  },
+  cart: { title: 'Your Cart | Prajahita', description: 'Review the soaps in your cart.', noindex: true },
+  checkout: { title: 'Checkout | Prajahita', description: 'Complete your Prajahita order.', noindex: true },
+  login: { title: 'Sign In | Prajahita', description: 'Sign in to your Prajahita account.', noindex: true },
+  signup: { title: 'Create Account | Prajahita', description: 'Create a Prajahita account.', noindex: true },
+  orders: { title: 'My Orders | Prajahita', description: 'Your Prajahita orders.', noindex: true },
+}
 
 function getNavFromPath(pathname: string): NavState {
   const path = pathname.split('?')[0].split('#')[0] || '/'
@@ -78,24 +106,19 @@ function AppContent() {
   ])
   const [chatInput, setChatInput] = useState('')
 
-  useEffect(() => {
-    const pageTitles: Record<Page, string> = {
-      home: 'Prajahita | Handmade Herbal Soaps',
-      shop: 'Shop | Prajahita',
-      product: 'Product | Prajahita',
-      about: 'About Us | Prajahita',
-      ingredients: 'Ingredients | Prajahita',
-      blog: 'Blog | Prajahita',
-      contact: 'Contact | Prajahita',
-      cart: 'Cart | Prajahita',
-      checkout: 'Checkout | Prajahita',
-      login: 'Sign In | Prajahita',
-      signup: 'Create Account | Prajahita',
-      orders: 'My Orders | Prajahita',
-    }
+  const pageMeta = PAGE_META[nav.page]
+  // The product page sets its own title, description and structured data.
+  usePageMeta(
+    nav.page === 'product'
+      ? { path: getPathFromNav(nav) }
+      : { ...pageMeta, path: getPathFromNav(nav), noindex: pageMeta.noindex },
+  )
 
-    document.title = pageTitles[nav.page]
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+  useEffect(() => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' })
+    // Move focus to the new page so keyboard and screen-reader users start at the top.
+    document.getElementById('main-content')?.focus({ preventScroll: true })
   }, [nav.page])
 
   useEffect(() => {
@@ -130,10 +153,10 @@ function AppContent() {
 
   if (loading || !ready) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream-100">
+      <div className="min-h-screen flex items-center justify-center bg-cream-100" role="status" aria-live="polite">
         <div className="text-center">
           <div className="w-12 h-12 rounded-full border-4 border-sage-200 border-t-sage-500 animate-spin mx-auto mb-4" />
-          <p className="text-sm font-medium text-brown-700">Initializing secure checkout…</p>
+          <p className="text-sm font-medium text-brown-700">Loading your store…</p>
         </div>
       </div>
     )
@@ -188,7 +211,7 @@ function AppContent() {
     <div className="min-h-screen flex flex-col bg-cream-100">
       <Navbar currentPage={nav.page} onNavigate={navigate} user={authUser} onLogout={handleLogout} />
 
-      <main className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
         {renderPage()}
       </main>
 
@@ -201,30 +224,38 @@ function AppContent() {
           showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
         }`}
         aria-label="Scroll to top"
+        aria-hidden={!showScrollTop}
+        tabIndex={showScrollTop ? 0 : -1}
       >
-        <ArrowUp size={18} />
+        <ArrowUp size={18} aria-hidden="true" />
       </button>
 
       {/* Chat Widget */}
       <div className="fixed bottom-5 right-5 z-50">
         {chatOpen ? (
-          <div className="w-80 bg-white rounded-3xl shadow-2xl border border-cream-200 overflow-hidden flex flex-col" style={{ height: '420px' }}>
+          <div
+            role="dialog"
+            aria-label="Chat with Vana, the skin assistant"
+            onKeyDown={e => e.key === 'Escape' && setChatOpen(false)}
+            className="w-80 max-w-[calc(100vw-2.5rem)] bg-white rounded-3xl shadow-2xl border border-cream-200 overflow-hidden flex flex-col"
+            style={{ height: '420px' }}
+          >
             <div className="bg-sage-500 px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-sage-400 rounded-2xl flex items-center justify-center">
-                  <span className="text-lg">🌿</span>
+                  <span className="text-lg" aria-hidden="true">🌿</span>
                 </div>
                 <div>
                   <p className="font-semibold text-cream-50 text-sm">Vana — Skin Assistant</p>
-                  <p className="text-[10px] text-sage-200">Usually replies instantly</p>
+                  <p className="text-xs text-sage-100">Replies instantly with soap suggestions</p>
                 </div>
               </div>
-              <button onClick={() => setChatOpen(false)} className="text-sage-200 hover:text-cream-50 transition-colors">
-                <X size={18} />
+              <button onClick={() => setChatOpen(false)} aria-label="Close chat" className="text-sage-200 hover:text-cream-50 transition-colors">
+                <X size={18} aria-hidden="true" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3" role="log" aria-live="polite" aria-label="Chat messages">
               {chatMessages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
@@ -244,7 +275,7 @@ function AppContent() {
                   <button
                     key={q}
                     onClick={() => { setChatInput(q.toLowerCase()); }}
-                    className="text-[10px] px-2.5 py-1 bg-cream-100 text-brown-600 rounded-full hover:bg-sage-50 transition-colors"
+                    className="text-xs px-3 py-1.5 bg-cream-100 text-brown-700 rounded-full hover:bg-sage-50 transition-colors"
                   >
                     {q}
                   </button>
@@ -253,13 +284,15 @@ function AppContent() {
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Ask about your skin..."
+                  aria-label="Ask about your skin"
+                  placeholder="e.g. I have dry skin"
+                  autoFocus
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleChat()}
                   className="flex-1 px-3 py-2.5 bg-cream-50 border border-cream-300 rounded-2xl text-xs focus:outline-none focus:ring-2 focus:ring-sage-400/30 focus:border-sage-400"
                 />
-                <button onClick={handleChat} className="btn-primary px-3 py-2.5 rounded-2xl text-xs">
+                <button onClick={handleChat} aria-label="Send message" className="btn-primary px-3 py-2.5 rounded-2xl text-xs">
                   Send
                 </button>
               </div>
@@ -269,9 +302,10 @@ function AppContent() {
           <button
             onClick={() => setChatOpen(true)}
             className="w-14 h-14 bg-sage-500 hover:bg-sage-600 rounded-2xl shadow-xl flex items-center justify-center transition-all hover:scale-105"
-            aria-label="Chat with us"
+            aria-label="Chat with Vana about your skin"
+            aria-haspopup="dialog"
           >
-            <MessageCircle size={22} className="text-cream-50" />
+            <MessageCircle size={22} className="text-cream-50" aria-hidden="true" />
           </button>
         )}
       </div>

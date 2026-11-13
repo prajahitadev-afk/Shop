@@ -537,7 +537,7 @@ export default function Shop({ onNavigate, initialSearch = '' }: Props) {
       {/* Mobile filter drawer */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 flex">
-          <div className="absolute inset-0 bg-brown-900/50" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute inset-0 bg-brown-900/50" aria-hidden="true" onClick={() => setSidebarOpen(false)} />
           <div className="relative ml-auto w-80 bg-white h-full overflow-y-auto p-5 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-semibold text-brown-800">Filters</h2>

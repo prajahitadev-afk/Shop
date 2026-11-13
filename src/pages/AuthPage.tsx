@@ -81,6 +81,7 @@ export default function AuthPage({ mode, onClose, onAuth }: Props) {
               </span>
               <input
                 type="text"
+                autoComplete="name"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 className="w-full rounded-2xl border border-cream-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400"
@@ -95,6 +96,7 @@ export default function AuthPage({ mode, onClose, onAuth }: Props) {
             </span>
             <input
               type="email"
+              autoComplete="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               className="w-full rounded-2xl border border-cream-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400"
@@ -108,6 +110,7 @@ export default function AuthPage({ mode, onClose, onAuth }: Props) {
             </span>
             <input
               type="password"
+              autoComplete={formMode === 'signup' ? 'new-password' : 'current-password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
               className="w-full rounded-2xl border border-cream-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400"
@@ -115,7 +118,7 @@ export default function AuthPage({ mode, onClose, onAuth }: Props) {
             />
           </label>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
           {success && <p className="text-sm text-sage-700">{success}</p>}
 
           <button className="w-full btn-primary py-3 rounded-2xl font-semibold flex items-center justify-center gap-2">

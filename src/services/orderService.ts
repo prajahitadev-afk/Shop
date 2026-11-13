@@ -76,8 +76,6 @@ export async function createOrder(payload: CreateOrderPayload) {
       'Order save timed out. Please try again.',
     )
 
-    console.log('ORDER_INSERT_RESULT', { orderError: orderError?.message ?? null, createdOrder })
-    console.log('ORDER_ID', createdOrder?.id ?? null)
 
     if (orderError || !createdOrder) {
       return { success: false as const, error: orderError?.message ?? 'Unable to create order.' }
@@ -92,10 +90,9 @@ export async function createOrder(payload: CreateOrderPayload) {
       total_price: item.totalPrice,
     }))
 
-    console.log('ORDER_ITEMS_PAYLOAD', { orderId: createdOrder.id, items: orderItemsPayload })
 
     if (orderItemsPayload.length > 0) {
-      const { data: insertedItems, error: itemError } = await withTimeout(
+      const { error: itemError } = await withTimeout(
         supabase
           .from('order_items')
           .insert(orderItemsPayload)
@@ -103,15 +100,8 @@ export async function createOrder(payload: CreateOrderPayload) {
         'Order items save timed out. Please try again.',
       )
 
-      console.log('ORDER_ITEMS_INSERT_RESULT', { insertedItems, itemError: itemError?.message ?? null })
 
       if (itemError) {
-        console.log('ORDER_ITEMS_ERROR', {
-          message: itemError.message,
-          code: itemError.code,
-          details: itemError.details,
-          hint: itemError.hint,
-        })
         return { success: false as const, error: itemError.message }
       }
 
@@ -128,7 +118,6 @@ export async function createOrder(payload: CreateOrderPayload) {
       items: [],
     }
   } catch (error) {
-    console.log('ORDER_ITEMS_ERROR', { message: error instanceof Error ? error.message : 'Unable to create order.' })
     return { success: false as const, error: error instanceof Error ? error.message : 'Unable to create order.' }
   }
 }
