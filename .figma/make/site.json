@@ -2,6 +2,9 @@
   "title": "Prajahita | Handmade Herbal Soaps",
   "description": "Prajahita creates handcrafted herbal soaps and natural skincare essentials made with Ayurvedic ingredients and eco-conscious values.",
   "language": "en",
+  "icons": {
+    "icon": "/favicon.svg"
+  },
   "accessibility": {
     "addBypassLinks": true
   }

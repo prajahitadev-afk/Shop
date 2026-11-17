@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Prajahita favicon</title>
+  <desc id="desc">Prajahita brand icon</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f4e7d5"/>
+      <stop offset="100%" stop-color="#d9b47a"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <circle cx="64" cy="64" r="46" fill="#fffaf2" opacity="0.96"/>
+  <path d="M44 35h22c14 0 25 9 25 22s-11 22-25 22H56v18c0 2.8-2.2 5-5 5s-5-2.2-5-5V35zm18 14h4c6 0 11 4 11 10s-5 10-11 10h-4V49z" fill="#3a2c1f"/>
+  <path d="M58 47h9c5 0 9 3.6 9 8.5S72 64 67 64h-9V47z" fill="#9a6a2d" opacity="0.9"/>
+</svg>
